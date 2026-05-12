@@ -39,41 +39,80 @@ class ActionChunkingWrapper(gym.Wrapper):
         return obs,total_reward,done,truncated,info
     
 
-    class DiffusionStateNormalizer(gym.ObservationWrapper):
+class DiffusionStateNormalizer(gym.ObservationWrapper):
+    """
+    Normalizes 1D state observations to a strict[-1,1] range
+    Diffusion models degrade rapidly if state conditioning vectors explode
+    """
+
+    def __init__(self,env):
+        super().__init__(env)
+        assert isinstance(env.observation_space,gym.spaces.Box)
+        self.eps=1e-8 # small number to prevent division by 0
+
+        #mean variance to calculate the deviation
+        self.running_mean=np.zeros(env.observation_space.shape,dtype=np.float32)#[obs_dim]
+        self.running_var=np.ones(env.observation_space.shape,dtype=np.float32)#[obs_dim]
+        self.count=1e-4
+
+    def observation(self,observation):
         """
-        Normalizes 1D state observations to a strict[-1,1] range
-        Diffusion models degrade rapidly if state conditioning vectors explode
+        This function is automatically called by Gym every time env.step() 
+        or env.reset() produces a new observation.
+        observation Shape: [obs_dim]
         """
+        self.count+=1 # update total step
+        
+        #calculate how far this is from the mean
+        delta=self.observation-self.running_mean
+        #new mean=old mean+(x-oldmean)/new count
+        self.running_mean+=delta/self.count # update the mean based on welford alg
 
-        def __init__(self,env):
-            super().__init__(env)
-            assert isinstance(env.observation_space,gym.spaces.Box)
-            self.eps=1e-8 # small number to prevent division by 0
+        self.running_var+=delta*(observation-self.running_mean)#update the variance
 
-            #mean variance to calculate the deviation
-            self.running_mean=np.zeros(env.observation_space.shape,dtype=np.float32)#[obs_dim]
-            self.running_var=np.ones(env.observation_space.shape,dtype=np.float32)#[obs_dim]
-            self.count=1e-4
+        #calculate std
+        var=self.running_var/self.count
+        std=np.sqrt(np.maximum(var,self.eps))
+        normalized_obs=(observation-self.running_mean)/std # z score
 
-        def observation(self,observation):
-            """
-            This function is automatically called by Gym every time env.step() 
-            or env.reset() produces a new observation.
-            observation Shape: [obs_dim]
-            """
-            self.count+=1 # update total step
-            
-            #calculate how far this is from the mean
-            delta=self.observation-self.running_mean
-            self.running_mean+=delta/self.count # update the mean
-            self.running_var+=delta*(observation-self.running_mean)#update the variance
+        return np.tanh(normalized_obs)
 
-            #calculate std
-            var=self.running_var/self.count
-            std=np.sqrt(np.maximum(var,self.eps))
-            normalized_obs=(observation-self.running_mean)/std # z score
+class RewardScaler(gym.RewardWrapper):
+    """
+    Scales rewards to maintain stable advantages for PPO.
+    Dexterous manipulation tasks often have sparse or rapidly exploding dense rewards.
+    """
+    def __init__(self,env,scale:float=0.01):
+        super().__init__(env)
+        self.scale=scale
 
-            return np.tanh(normalized_obs)
+    def reward(self,reward):
+        #called by gym after env.step()
+        return reward*self.scale
+
+def make_dppo_env(env_id:str,Ta:int,reward_scale:float=0.01):
+    #function to build the environment stack from inside out
+    env=gym.make(env_id)#initialize the base physics env
+
+    #gym.spaces.Dict: A gym space represeting a python dict of spaces
+    #shadow hand usualy outputs {obs:[obs_dim],desired_goal:[goal_dim]...}
+    """{
+  'observation':    np.array([...]),  # shape (61,)  joint pos, vel, object state
+  'achieved_goal':  np.array([...]),  # shape (7,)   current object pose
+  'desired_goal':   np.array([...])   # shape (7,)   target object pose
+}"""
+
+    if isinstance(env.observation_space,gym.spaces.Dict):
+        env=gym.wrappers.FlattenObservation(env)#concat the dict into a long 1d vector
+
+    env=DiffusionStateNormalizer(env)#modifies obs going out
+    env=RewardScaler(env,scale=reward_scale)#scale reward by 0.01
+    env=ActionChunkingWrapper(env,chunk_size=Ta)#expands to Ta,action_dim and executes
+
+
+    #rescaleaction scale back the output which is in [-1.0,1.0] to physical torque
+    env=gym.wrappers.RescaleAction(env,min_action=-1.0,max_action=1.0)
+
 
 
 
