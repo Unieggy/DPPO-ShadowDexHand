@@ -56,3 +56,89 @@ class SinusoidalPosEmb(nn.Module):
 
         emb=torch.cat((emb.sin(),emb.cos()),dim=-1)
         return emb
+    
+class DiffusionMLPActor(nn.Module):
+    """
+    The Actor: Predicts the noise added to the action chunk at step k
+    """
+    def __init__(self,obs_dim:int,act_dim:int,chunk_size:int,hidden_dim:int=256):
+        super().__init__()
+        self.chunk_size=chunk_size #Tp total predicted steps
+        self.act_dim=act_dim # action dimension for each steps
+
+        #flatten the action chunk for the MLP
+        self.flat_action_dim=self.chunk_size*self.act_dim
+
+        #time step embedding network
+        self.time_mlp=nn.Sequential(
+            SinusoidalPosEmb(hidden_dim), #encodes each k steps to [batch_size,hidden_dim]
+            nn.Linear(hidden_dim,hidden_dim*2),
+            nn.Mish(),
+            nn.Linear(hidden_dim*2,hidden_dim)
+        )
+
+        #input dimension:State+flattened action+time embedding
+        input_dim=obs_dim+self.flat_action_dim+hidden_dim
+
+        #the core mlp backbone
+        #Mish is preferred over ReLu in diffusion for smoother gradients
+        self.net=nn.Sequential(
+            nn.Linear(input_dim,hidden_dim),
+            nn.Mish(),
+            nn.Linear(hidden_dim,hidden_dim),
+            nn.Mish(),
+            nn.Linear(hidden_dim,hidden_dim),
+            nn.Mish(),
+            nn.Linear(hidden_dim,self.flat_action_dim)# output matches the flattened action dim
+        )
+
+    def forward(self,state,noisty_action_chunk,k_step):
+        """
+        state Shape: [batch_size, obs_dim]
+        noisy_action_chunk Shape: [batch_size, chunk_size, act_dim]
+        k_step Shape: [batch_size]
+        """
+
+        #1, Flatten the 2d action chunk into a 1d vector per batch
+        #shape:[batch_size,chunk_size*action_dim]
+        flat_action=noisty_action_chunk.view(-1,self.flat_action_dim)
+
+        #2 embed the diffusion step
+        #shape[batch_size,hidden_dim]
+        #pass the k for eg 42 into the sinusoidal pos emb
+        #which converts the integer to a vector of [1,256]
+        time_emb=self.time_mlp(k_step)
+
+        #3 concat all inputs along the feature dimension
+        #shape[batch_size,obs_dim+flat_action_dim+hidden_dim]
+        x=torch.cat([state,flat_action,time_emb],dim=-1)
+
+        # 4 predict the noise
+        #shape[batch_size,chunk_size*act_dim]
+        predicted_flat_noise=self.net(x)
+
+        #5 reshape back to the original action chunk size
+        #shape[batch_size,chunk_size,act_dim]
+        predicted_noise=predicted_flat_noise.view(-1,self.chunk_size,self.act_dim)
+
+        return predicted_noise
+    
+class ValueCritic(nn.Module):
+    """
+    The Critic: Predicts the scalar value V(s) of a given state.
+    Used exclusively to calculate the Generalized Advantage Estimate (GAE).
+    """
+    def __init__(self,obs_dim:int,hidden_dim:int=256):
+        super().__init__()
+
+        #standard mlp, just map state to a single value
+        self.net=nn.Sequential(
+            nn.Linear(obs_dim,hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim,hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim,1)# output is a single value per batch/k step
+        )
+    def forward(self,state):
+        #state shape:[batch_size,obs_dim]
+        return self.net(state)
