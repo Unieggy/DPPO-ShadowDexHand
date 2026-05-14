@@ -101,6 +101,7 @@ def compute_ppo_objective(new_log_probs, old_log_probs, advantages, epsilon_clip
     advantages Shape: [batch] (Pulled from the Dashcam Buffer)
     #we dont use pi(a|s) because theres no way of mathmatically calculating this out
     #so we use the noise predicted for p(xk-1|xk,s) for the last k prime steps
+    #batch size for training batch
     """
     
     #calculate the probability ratio new pi(a|s)/old pi(a|s)
@@ -109,3 +110,15 @@ def compute_ppo_objective(new_log_probs, old_log_probs, advantages, epsilon_clip
 
     #unclipped objective
     surr1=ratio*advantages
+
+    # 3. Clipped Objective (Surrogate 2)
+    # torch.clamp restricts the ratio to be between [0.8, 1.2]
+    # This prevents the policy from updating too drastically in a single step.
+    # Shape: [batch]
+
+    clipped_ratio=torch.clamp(ratio,1-epsilon_clip,1+epsilon_clip)
+    surr2=clipped_ratio*advantages
+
+    ppo_loss=-torch.min(surr1,surr2).mean()
+
+    return ppo_loss
