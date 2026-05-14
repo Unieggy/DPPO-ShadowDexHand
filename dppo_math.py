@@ -62,3 +62,32 @@ class DashcamBuffer:
     
     def clear(self):
         self.ptr=0
+
+def calculate_gaussian_log_prob(predicted_noise, target_noise, log_variance):
+    """
+    Calculates the Log-Likelihood of the diffusion step transition.
+    In DDIM, the reverse step is treated as a Gaussian distribution.
+    
+    predicted_noise Shape: [batch, chunk_size, act_dim] (Output of our MLP Actor)
+    target_noise Shape: [batch, chunk_size, act_dim] (The actual noise we added during training)
+    log_variance Shape: [batch, 1, 1] (From the diffusion scheduler)
+    """
+    # Math: log P(x) = -0.5 * ( (x - mu)^2 / var + log(var) + log(2*pi) )
+    # Because diffusion predicts NOISE instead of the data directly,
+    # we calculate the log prob of the noise matching.
+
+    #calculate mean squared error between predicted and actual noise
+    #shape[batch,chunk_size,act_dim]
+    squared_error=(predicted_noise-target_noise)**2
+
+    #divide by variance
+    scaled_error=squared_error*torch.exp(-log_variance)
+
+    #sum the log likelihoods across chunk and action dimension
+    #so a single scalar log_prob per batch
+    #log(2*pi) approx 1.837877
+    #outputshape:[batch]
+
+    log_prob=-0.5*(scaled_error+log_variance+1.837877).sum(dim=(1,2))
+
+    return log_prob
