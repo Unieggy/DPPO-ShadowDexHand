@@ -91,3 +91,21 @@ def calculate_gaussian_log_prob(predicted_noise, target_noise, log_variance):
     log_prob=-0.5*(scaled_error+log_variance+1.837877).sum(dim=(1,2))
 
     return log_prob
+
+def compute_ppo_objective(new_log_probs, old_log_probs, advantages, epsilon_clip=0.2):
+    """
+    The standard Clipped Surrogate Objective Function from PPO.
+    
+    new_log_probs Shape: [batch] (Calculated by the network RIGHT NOW)
+    old_log_probs Shape: [batch] (Pulled from the Dashcam Buffer)
+    advantages Shape: [batch] (Pulled from the Dashcam Buffer)
+    #we dont use pi(a|s) because theres no way of mathmatically calculating this out
+    #so we use the noise predicted for p(xk-1|xk,s) for the last k prime steps
+    """
+    
+    #calculate the probability ratio new pi(a|s)/old pi(a|s)
+    #exp(lognew-log old)=new/old
+    ratio=torch.exp(new_log_probs-old_log_probs)
+
+    #unclipped objective
+    surr1=ratio*advantages
