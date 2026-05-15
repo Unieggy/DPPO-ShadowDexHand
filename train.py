@@ -75,7 +75,10 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
 
         #collect a specific number of environment trajectories
         for t in range(buffer.total_capacity//K_prime):
+            
             state,_=env.reset() # base env state
+            
+            #[1, obs_dim]
             state=torch.tensor(state,dtype=torch.float32,device=device).unsqueeze(0)
 
             #start diffusion from pure noise
@@ -83,7 +86,7 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
             noisy_action=torch.randn((1,active_actor.chunk_size,active_actor.act_dim),device=device)
 
             #temporary storage for the K' fine tuning window
-            window_states,window_actions,window_ks,windo_log_probs=[],[],[],[]
+            window_states,window_actions,window_ks,window_log_probs=[],[],[],[]
 
             with torch.no_grad(): #frozen model
                 #run the reverse diffusion loop
@@ -95,4 +98,57 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
                     #noise_pred shape:[1,chunk_size,act_dim]
                     noise_pred=old_actor(state,noisy_action,k_tensor)
 
-                    #get the mathmat
+                    #get the mathmatical ground truth noise for DDIM
+                    #target_noise shape:[1,chunk_size, act_dim]
+                    #log_variance:[1,1,1]
+                    target_noise,log_variance=diffusion_scheduler.get_target_noise(noisy_action,k_tensor)
+
+                    if k<K_prime:
+                        old_log_prob=calculate_gaussian_log_prob(noise_pred,target_noise,log_variance)
+                        window_states.append(state.squueze(0))
+                        window_actions.append(noisy_action.squeeze(0))
+                        window_ks.append(k_tensor.squeeze(0))
+                        window_log_probs.append(old_log_prob.squeeze(0))
+
+                    noisy_action=diffusion_scheduler.step(noisy_action,noise_pred,k_tensor)
+                #env execution
+                final_action_chunk=noisy_action.cpu().numpy()[0]
+                next_state,reward,done,_,_=env.step(final_action_chunk)
+
+                #advtange calculation and broadcast
+                state_value=critic(state).squeeze()
+                env_advantage=torch.tensor([reward],device=device)-state_value
+                env_return=torch.tensor([reward],device=device)
+
+                buffer.add_trajectory(
+                    torch.stack(window_states),torch.stack(window_actions),
+                    torch.stack(window_ks),torch.stack(window_log_probs),
+                    env_advantage,env_return
+                )
+
+        #PARTB the ppo update
+
+        b_states,b_noisy_actions,b_k_steps,b_old_log_probs,b_advs,b_rets=buffer.get_all()
+
+        for epoch in range(ppo_epochs): #PPO epochs
+            #critic update
+            value=critic(b_states).squeeze()
+            critic_loss=torch.nn.functional.mse_loss(value,b_rets)
+            optimizer_critic.zero_grad()
+            critic_loss.backward()
+            optimizer_critic.step()
+
+            #actor update(DPPO )
+            new_noise_pred=active_actor(b_states,b_noisy_actions,b_k_steps)
+            target_noise,log_variance=diffusion_scheduler.get_target_noise(b_noisy_actions,b_k_steps)
+            new_log_probs=calculate_gaussian_log_prob(new_noise_pred,target_noise,log_variance)
+
+            actor_loss=compute_ppo_objective(new_log_probs,b_old_log_probs,b_advs)
+
+            optimizer_actor.zero_grad()
+            actor_loss.backward()
+            optimizer_actor.step()
+
+        old_actor.load_state_dict(active_actor.state_dict())
+
+
