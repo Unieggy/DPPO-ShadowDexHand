@@ -57,3 +57,42 @@ def train_behavior_cloning(actor,diffusion_scheduler,expert_states,expert_action
             optimizer.step()
     return actor
 
+def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,K_prime,device="cpu"):
+    """
+    PROCESS: REINFORCEMENT LEARNING (DPPO)
+    Fine-tunes the behavior-cloned policy using environment rewards.
+    """
+
+    optimizer_actor=optim.AdamW(active_actor.parameters(),lr=1e-5)
+    optimizer_critic=optim.AdamW(critic.parameters(),lr=3e-4)
+
+    num_iterations=1000
+    ppo_epochs=4 #times we sweep thru the buffer per iteration
+
+    for iteration in range(num_iterations):
+        # EVENT 1: THE ROLLOUT (Gathering Data using the FROZEN Old Policy)
+        buffer.clear()
+
+        #collect a specific number of environment trajectories
+        for t in range(buffer.total_capacity//K_prime):
+            state,_=env.reset() # base env state
+            state=torch.tensor(state,dtype=torch.float32,device=device).unsqueeze(0)
+
+            #start diffusion from pure noise
+            #noisy action:[1,chunk_size,act_dim]
+            noisy_action=torch.randn((1,active_actor.chunk_size,active_actor.act_dim),device=device)
+
+            #temporary storage for the K' fine tuning window
+            window_states,window_actions,window_ks,windo_log_probs=[],[],[],[]
+
+            with torch.no_grad(): #frozen model
+                #run the reverse diffusion loop
+                for k in reversed(range(K)):
+                    #k_tensor [1]
+                    k_tensor=torch.tensor([k],dtype=torch.long,device=device)
+
+                    #old policy predicts noise for this specific k step
+                    #noise_pred shape:[1,chunk_size,act_dim]
+                    noise_pred=old_actor(state,noisy_action,k_tensor)
+
+                    #get the mathmat
