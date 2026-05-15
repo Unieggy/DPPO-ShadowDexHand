@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utiles.data import DataLoader,TensorDataset
+from torch.utils.data import DataLoader,TensorDataset
 
 def train_behavior_cloning(actor,diffusion_scheduler,expert_states,expert_action_chunks,K:int,epochs:int,batch_size:int,device="cpu"):
     """
@@ -23,18 +23,18 @@ def train_behavior_cloning(actor,diffusion_scheduler,expert_states,expert_action
 
     for epoch in range(epochs):
         for batch_states,batch_actions in dataloader:
-            batch_size=batch_states.to(device) #(batch_size,obs_dim)
+            batch_states=batch_states.to(device) #(batch_size,obs_dim)
             batch_actions=batch_actions.to(device)#(batch_size,chunk_size,act_dim)
 
             #1 randomize diffusion steps k
             #we train the network to denoise from any step in the sequence
             #random_ks:[batch_size]
-            random_ks=torch.randin(0,K,(batch_size,),device=device,dtype=torch.long)
+            random_ks=torch.randint(0,K,(batch_size,),device=device,dtype=torch.long)
 
 
             #2 generate pure gaussian noise
             #pure noise:[batch_size,chunk_size,act_dim]
-            pure_noise=torch.randn_like(batch_actions)
+            pure_noise=torch.randint_like(batch_actions)
 
             #3 create the trianing target
             #mathmatically corruput the expert action with the pure noise to simulate step k
@@ -77,7 +77,7 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
         for t in range(buffer.total_capacity//K_prime):
             
             state,_=env.reset() # base env state
-            
+
             #[1, obs_dim]
             state=torch.tensor(state,dtype=torch.float32,device=device).unsqueeze(0)
 
@@ -105,7 +105,7 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
 
                     if k<K_prime:
                         old_log_prob=calculate_gaussian_log_prob(noise_pred,target_noise,log_variance)
-                        window_states.append(state.squueze(0))
+                        window_states.append(state.squeeze(0))
                         window_actions.append(noisy_action.squeeze(0))
                         window_ks.append(k_tensor.squeeze(0))
                         window_log_probs.append(old_log_prob.squeeze(0))

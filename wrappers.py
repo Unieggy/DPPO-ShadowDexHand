@@ -10,7 +10,7 @@ class ActionChunkingWrapper(gym.Wrapper):
         self.Ta=chunk_size
 
         #expand the action space to (Ta,action_dim)
-        assert isinstance(env.action_space,gym.space.Box)
+        assert isinstance(env.action_space,gym.spaces.Box)
         self.single_action_dim=env.action_space.shape[0]
         #repeats the array actionspace(lower bound for each action dim)self.Ta times along the row
         low=np.tile(env.action_space.low,(self.Ta,1)) #(Ta,action_dim)
@@ -64,7 +64,7 @@ class DiffusionStateNormalizer(gym.ObservationWrapper):
         self.count+=1 # update total step
         
         #calculate how far this is from the mean
-        delta=self.observation-self.running_mean
+        delta=observation-self.running_mean
         #new mean=old mean+(x-oldmean)/new count
         self.running_mean+=delta/self.count # update the mean based on welford alg
 
