@@ -124,6 +124,7 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
                 Ta=env.action_space.shape[0]
                 final_action_chunk=noisy_action.cpu().numpy()[0,:Ta]
                 next_state,reward,done,_,_=env.step(final_action_chunk)
+                rollout_rewards.append(reward)
 
                 #advtange calculation and broadcast
                 state_value=critic(state).squeeze()
@@ -136,7 +137,11 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
                     torch.stack(window_log_probs),env_advantage,env_return
                 )
 
+        mean_reward=sum(rollout_rewards)/len(rollout_rewards)
+        print(f"  [Rollout] Done. Mean reward: {mean_reward:.4f}  Min: {min(rollout_rewards):.4f}  Max: {max(rollout_rewards):.4f}")
+
         #PARTB the ppo update
+        print(f"  [PPO]     Updating policy over {ppo_epochs} epochs...")
 
         b_states,b_noisy_actions,b_committed_noises,b_k_steps,b_old_log_probs,b_advs,b_rets=buffer.get_all()
 
@@ -159,6 +164,9 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
             actor_loss.backward()
             optimizer_actor.step()
 
+            print(f"    Epoch {epoch+1}/{ppo_epochs} — actor_loss: {actor_loss.item():.4f}  critic_loss: {critic_loss.item():.4f}")
+
         old_actor.load_state_dict(active_actor.state_dict())
+        print(f"  [Policy]  Old actor synced with updated weights.")
 
 
