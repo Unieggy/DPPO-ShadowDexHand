@@ -17,19 +17,21 @@ class DashcamBuffer:
         #preallocate tensots for speed and memory efficiency
         self.states=torch.zeros((self.total_capacity,obs_dim),device=device)
         self.noisy_actions=torch.zeros((self.total_capacity,chunk_size,act_dim),device=device)
+        self.committed_noises=torch.zeros((self.total_capacity,chunk_size,act_dim),device=device)
         self.k_steps=torch.zeros((self.total_capacity,),dtype=torch.long,device=device)
         self.log_probs=torch.zeros((self.total_capacity,),device=device)
         self.advantages=torch.zeros((self.total_capacity,),device=device)
         self.returns=torch.zeros((self.total_capacity,),device=device)
 
-    def add_trajectory(self,states,noisy_actions,k_steps,log_probs,env_advantage,env_return):
+    def add_trajectory(self,states,noisy_actions,committed_noises,k_steps,log_probs,env_advantage,env_return):
         """
         Adds the K' micro-steps from ONE physical environment step into the buffer.
         Notice that env_advantage is a single scalar, but we assign it to all K' steps.
-        
+
         Input Shapes (for a single environment step):
         - states: [K_prime, obs_dim]
-        - noisy_actions: [K_prime, chunk_size, act_dim]
+        - noisy_actions: [K_prime, chunk_size, act_dim]  (x_k — input to actor)
+        - committed_noises: [K_prime, chunk_size, act_dim]  (sampled epsilon — the RL action)
         - k_steps: [K_prime]
         - log_probs: [K_prime]
         - env_advantage: [Scalar]
@@ -42,6 +44,7 @@ class DashcamBuffer:
 
         self.states[idx]=states
         self.noisy_actions[idx]=noisy_actions
+        self.committed_noises[idx]=committed_noises
         self.k_steps[idx]=k_steps
         self.log_probs[idx]=log_probs
 
@@ -58,7 +61,7 @@ class DashcamBuffer:
         adv=self.advantages
         normalized_adv=(adv-adv.mean())/(adv.std()+1e-8)
 
-        return(self.states,self.noisy_actions,self.k_steps,self.log_probs,normalized_adv,self.returns)
+        return(self.states,self.noisy_actions,self.committed_noises,self.k_steps,self.log_probs,normalized_adv,self.returns)
     
     def clear(self):
         self.ptr=0
@@ -122,3 +125,15 @@ def compute_ppo_objective(new_log_probs, old_log_probs, advantages, epsilon_clip
     ppo_loss=-torch.min(surr1,surr2).mean()
 
     return ppo_loss
+
+def get_ddpm_log_variance(scheduler, k_steps, device):
+    """
+    Returns log(sigma_k^2) for each step in k_steps using the scheduler's beta schedule.
+    sigma_k^2 = beta_k is the DDPM posterior variance.
+
+    k_steps shape: [batch]
+    output shape:  [batch, 1, 1]  — broadcasts over chunk_size and act_dim
+    """
+    betas = scheduler.betas.to(device)
+    log_var = torch.log(betas[k_steps] + 1e-8)
+    return log_var.view(-1, 1, 1)

@@ -91,27 +91,18 @@ class RewardScaler(gym.RewardWrapper):
         return reward*self.scale
 
 def make_dppo_env(env_id:str,Ta:int,reward_scale:float=0.01):
-    #function to build the environment stack from inside out
-    env=gym.make(env_id)#initialize the base physics env
-
-    #gym.spaces.Dict: A gym space represeting a python dict of spaces
-    #shadow hand usualy outputs {obs:[obs_dim],desired_goal:[goal_dim]...}
-    """{
-  'observation':    np.array([...]),  # shape (61,)  joint pos, vel, object state
-  'achieved_goal':  np.array([...]),  # shape (7,)   current object pose
-  'desired_goal':   np.array([...])   # shape (7,)   target object pose
-}"""
+    import gymnasium_robotics
+    gym.register_envs(gymnasium_robotics)
+    env=gym.make(env_id)
 
     if isinstance(env.observation_space,gym.spaces.Dict):
-        env=gym.wrappers.FlattenObservation(env)#concat the dict into a long 1d vector
+        env=gym.wrappers.FlattenObservation(env)
 
-    env=DiffusionStateNormalizer(env)#modifies obs going out
-    env=RewardScaler(env,scale=reward_scale)#scale reward by 0.01
-    env=ActionChunkingWrapper(env,chunk_size=Ta)#expands to Ta,action_dim and executes
-
-
-    #rescaleaction scale back the output which is in [-1.0,1.0] to physical torque
+    env=DiffusionStateNormalizer(env)
+    env=RewardScaler(env,scale=reward_scale)
+    env=ActionChunkingWrapper(env,chunk_size=Ta)
     env=gym.wrappers.RescaleAction(env,min_action=-1.0,max_action=1.0)
+    return env
 
 
 

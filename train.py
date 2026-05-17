@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader,TensorDataset
+from dppo_math import calculate_gaussian_log_prob, compute_ppo_objective, get_ddpm_log_variance
 
 def train_behavior_cloning(actor,diffusion_scheduler,expert_states,expert_action_chunks,K:int,epochs:int,batch_size:int,device="cpu"):
     """
@@ -34,7 +35,7 @@ def train_behavior_cloning(actor,diffusion_scheduler,expert_states,expert_action
 
             #2 generate pure gaussian noise
             #pure noise:[batch_size,chunk_size,act_dim]
-            pure_noise=torch.randint_like(batch_actions)
+            pure_noise=torch.randn_like(batch_actions)
 
             #3 create the trianing target
             #mathmatically corruput the expert action with the pure noise to simulate step k
@@ -68,13 +69,19 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
 
     num_iterations=1000
     ppo_epochs=4 #times we sweep thru the buffer per iteration
+    num_env_steps=buffer.total_capacity//K_prime
 
     for iteration in range(num_iterations):
         # EVENT 1: THE ROLLOUT (Gathering Data using the FROZEN Old Policy)
         buffer.clear()
+        rollout_rewards=[]
+
+        print(f"\n{'='*50}")
+        print(f"Iteration {iteration+1}/{num_iterations}")
+        print(f"  [Rollout] Collecting {num_env_steps} environment steps...")
 
         #collect a specific number of environment trajectories
-        for t in range(buffer.total_capacity//K_prime):
+        for t in range(num_env_steps):
             
             state,_=env.reset() # base env state
 
@@ -86,7 +93,7 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
             noisy_action=torch.randn((1,active_actor.chunk_size,active_actor.act_dim),device=device)
 
             #temporary storage for the K' fine tuning window
-            window_states,window_actions,window_ks,window_log_probs=[],[],[],[]
+            window_states,window_actions,window_committed_noises,window_ks,window_log_probs=[],[],[],[],[]
 
             with torch.no_grad(): #frozen model
                 #run the reverse diffusion loop
@@ -98,21 +105,24 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
                     #noise_pred shape:[1,chunk_size,act_dim]
                     noise_pred=old_actor(state,noisy_action,k_tensor)
 
-                    #get the mathmatical ground truth noise for DDIM
-                    #target_noise shape:[1,chunk_size, act_dim]
-                    #log_variance:[1,1,1]
-                    target_noise,log_variance=diffusion_scheduler.get_target_noise(noisy_action,k_tensor)
+                    # sample committed noise: policy mean + scheduler variance
+                    # shape: [1,1,1] → broadcasts over [1,chunk_size,act_dim]
+                    log_var=get_ddpm_log_variance(diffusion_scheduler,k_tensor,device)
+                    sigma_k=torch.exp(0.5*log_var)
+                    committed_noise=noise_pred+sigma_k*torch.randn_like(noise_pred)
 
                     if k<K_prime:
-                        old_log_prob=calculate_gaussian_log_prob(noise_pred,target_noise,log_variance)
+                        old_log_prob=calculate_gaussian_log_prob(noise_pred,committed_noise,log_var)
                         window_states.append(state.squeeze(0))
                         window_actions.append(noisy_action.squeeze(0))
+                        window_committed_noises.append(committed_noise.squeeze(0))
                         window_ks.append(k_tensor.squeeze(0))
                         window_log_probs.append(old_log_prob.squeeze(0))
 
-                    noisy_action=diffusion_scheduler.step(noisy_action,noise_pred,k_tensor)
+                    noisy_action=diffusion_scheduler.step(noise_pred,k,noisy_action).prev_sample
                 #env execution
-                final_action_chunk=noisy_action.cpu().numpy()[0]
+                Ta=env.action_space.shape[0]
+                final_action_chunk=noisy_action.cpu().numpy()[0,:Ta]
                 next_state,reward,done,_,_=env.step(final_action_chunk)
 
                 #advtange calculation and broadcast
@@ -122,13 +132,13 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
 
                 buffer.add_trajectory(
                     torch.stack(window_states),torch.stack(window_actions),
-                    torch.stack(window_ks),torch.stack(window_log_probs),
-                    env_advantage,env_return
+                    torch.stack(window_committed_noises),torch.stack(window_ks),
+                    torch.stack(window_log_probs),env_advantage,env_return
                 )
 
         #PARTB the ppo update
 
-        b_states,b_noisy_actions,b_k_steps,b_old_log_probs,b_advs,b_rets=buffer.get_all()
+        b_states,b_noisy_actions,b_committed_noises,b_k_steps,b_old_log_probs,b_advs,b_rets=buffer.get_all()
 
         for epoch in range(ppo_epochs): #PPO epochs
             #critic update
@@ -140,8 +150,8 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
 
             #actor update(DPPO )
             new_noise_pred=active_actor(b_states,b_noisy_actions,b_k_steps)
-            target_noise,log_variance=diffusion_scheduler.get_target_noise(b_noisy_actions,b_k_steps)
-            new_log_probs=calculate_gaussian_log_prob(new_noise_pred,target_noise,log_variance)
+            log_variance=get_ddpm_log_variance(diffusion_scheduler,b_k_steps,device)
+            new_log_probs=calculate_gaussian_log_prob(new_noise_pred,b_committed_noises,log_variance)
 
             actor_loss=compute_ppo_objective(new_log_probs,b_old_log_probs,b_advs)
 
