@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -58,7 +59,44 @@ def train_behavior_cloning(actor,diffusion_scheduler,expert_states,expert_action
             optimizer.step()
     return actor
 
-def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,K_prime,device="cpu"):
+def evaluate_policy(env, actor, diffusion_scheduler, K, device, num_episodes=5):
+    """
+    Runs deterministic evaluation episodes — no exploration noise.
+    The actor uses its mean prediction (noise_pred) directly at every denoising step.
+    Returns the success rate across num_episodes.
+    """
+    actor.eval()
+    successes=0
+    Ta=env.action_space.shape[0]
+
+    with torch.no_grad():
+        for ep in range(num_episodes):
+            obs,_=env.reset()
+            done=False
+            info={}
+
+            while not done:
+                obs_tensor=torch.tensor(obs,dtype=torch.float32,device=device).unsqueeze(0)
+
+                # deterministic K→0 denoising: no sigma*z added
+                x=torch.randn(1,actor.chunk_size,actor.act_dim,device=device)
+                for k in reversed(range(K)):
+                    k_tensor=torch.tensor([k],dtype=torch.long,device=device)
+                    noise_pred=actor(obs_tensor,x,k_tensor)
+                    x=diffusion_scheduler.step(noise_pred,k,x).prev_sample
+
+                action=x.cpu().numpy()[0,:Ta]
+                obs,_,terminated,truncated,info=env.step(action)
+                done=terminated or truncated
+
+            if info.get('is_success',False):
+                successes+=1
+
+    actor.train()
+    return successes/num_episodes
+
+
+def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,K_prime,device="cpu",save_dir="checkpoints",save_every=50,eval_every=20,num_eval_episodes=5):
     """
     PROCESS: REINFORCEMENT LEARNING (DPPO)
     Fine-tunes the behavior-cloned policy using environment rewards.
@@ -70,6 +108,7 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
     num_iterations=1000
     ppo_epochs=4 #times we sweep thru the buffer per iteration
     num_env_steps=buffer.total_capacity//K_prime
+    best_success_rate=-1.0
 
     for iteration in range(num_iterations):
         # EVENT 1: THE ROLLOUT (Gathering Data using the FROZEN Old Policy)
@@ -168,5 +207,21 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
 
         old_actor.load_state_dict(active_actor.state_dict())
         print(f"  [Policy]  Old actor synced with updated weights.")
+
+        if (iteration+1) % save_every == 0:
+            os.makedirs(save_dir, exist_ok=True)
+            torch.save(active_actor.state_dict(), os.path.join(save_dir, f"actor_iter{iteration+1}.pt"))
+            torch.save(critic.state_dict(),       os.path.join(save_dir, f"critic_iter{iteration+1}.pt"))
+            print(f"  [Saved]   Checkpoint saved at iteration {iteration+1} → {save_dir}/")
+
+        if (iteration+1) % eval_every == 0:
+            print(f"  [Eval]    Running {num_eval_episodes} deterministic episodes...")
+            success_rate=evaluate_policy(env,active_actor,diffusion_scheduler,K,device,num_eval_episodes)
+            print(f"  [Eval]    Success rate: {success_rate*100:.1f}%  (best so far: {best_success_rate*100:.1f}%)")
+            if success_rate>best_success_rate:
+                best_success_rate=success_rate
+                os.makedirs(save_dir, exist_ok=True)
+                torch.save(active_actor.state_dict(), os.path.join(save_dir, "actor_best.pt"))
+                print(f"  [Best]    New best! actor_best.pt saved (success rate: {success_rate*100:.1f}%)")
 
 
