@@ -1,7 +1,7 @@
 """
 generate_expert_data.py
 
-Phase A: Trains a SAC expert on HandManipulateBlockDense-v1 using the same
+Phase A: Trains a SAC expert on HandManipulateEggDense-v1 using the same
           DiffusionStateNormalizer obs stack as the DPPO agent.
 Phase B: Records successful episodes into sliding-window action chunks and
           saves expert_data.pt: {"states": [N,75], "action_chunks": [N,4,20]}
@@ -24,7 +24,7 @@ from wrappers import DiffusionStateNormalizer
 gym.register_envs(gymnasium_robotics)
 
 # ── Config ─────────────────────────────────────────────────────────────────────
-DENSE_ENV_ID       = "HandManipulateBlockDense-v1"
+DENSE_ENV_ID       = "HandManipulateEggDense-v1"
 CHUNK_SIZE         = 4
 TARGET_TRANSITIONS = 100_000
 SAC_TIMESTEPS      = 2_000_000
@@ -42,7 +42,7 @@ def make_env(dense: bool = True):
     SAC operates on single-step actions so ActionChunkingWrapper is NOT applied.
     RescaleAction ensures SAC's tanh outputs map cleanly to the env's torque range.
     """
-    env_id = DENSE_ENV_ID if dense else "HandManipulateBlock-v1"
+    env_id = DENSE_ENV_ID if dense else "HandManipulateEgg-v1"
     env = gym.make(env_id)
     if isinstance(env.observation_space, gym.spaces.Dict):
         env = gym.wrappers.FlattenObservation(env)   # [75]

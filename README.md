@@ -1,12 +1,12 @@
 # DPPO for Dexterous Manipulation
 
 ## Overview
-This repository contains a custom implementation of Diffusion Policy Policy Optimization (DPPO) tailored for high-dimensional, state-based dexterous manipulation tasks. The primary target environment is the `gymnasium-robotics` Shadow Dexterous Hand. This implementation bridges generative diffusion models with reinforcement learning by fine-tuning a pre-trained diffusion policy to maximize task rewards using PPO.
+This repository contains a custom implementation of Diffusion Policy Policy Optimization (DPPO) tailored for high-dimensional, state-based dexterous manipulation tasks. The target environment is the `gymnasium-robotics` Shadow Dexterous Hand tasked with **in-hand egg reorientation** (`HandManipulateEgg-v1`). The egg was chosen over the block because its rotational symmetry around one axis reduces the number of hard-to-reach goal orientations, making it a more tractable first target for sparse-reward RL. This implementation bridges generative diffusion models with reinforcement learning by fine-tuning a pre-trained diffusion policy to maximize task rewards using PPO.
 
 ## Architecture and Design
-* Environment: `gymnasium-robotics` (Shadow Dexterous Hand)
+* Environment: `HandManipulateEgg-v1` / `HandManipulateEggDense-v1` (Shadow Dexterous Hand, gymnasium-robotics)
 * Observation Space: 1D State Vector (requires strict [-1, 1] normalization)
-* Action Space: Continuous, High-dimensional (20+ Degrees of Freedom)
+* Action Space: Continuous, High-dimensional (20 Degrees of Freedom)
 * Policy Format: Action Chunking (predicts Tp future steps, executes Ta steps)
 * Actor Network: MLP Backbone with Sinusoidal Positional Embeddings for the diffusion time-step (k)
 * Critic Network: Standard MLP predicting state value V(s)
@@ -17,7 +17,7 @@ The implementation is modularized into five primary components:
 
 ### 0. Expert Data Generation (`generate_expert_data.py`)
 Must be run once before any DPPO training. Operates in two phases:
-* **Phase A — SAC Teacher**: Trains a Soft Actor-Critic agent on `HandManipulateBlockDense-v1` (dense reward variant) using `stable-baselines3`. Evaluates success rate every 20k steps and stops early when 95% is reached (up to 2M timesteps). Saves the best model as `teacher_sac.zip`.
+* **Phase A — SAC Teacher**: Trains a Soft Actor-Critic agent on `HandManipulateEggDense-v1` (dense reward variant) using `stable-baselines3`. Evaluates success rate every 20k steps and stops early when 95% is reached (up to 2M timesteps). Saves the best model as `teacher_sac.zip`.
 * **Phase B — Data Recording**: Runs the trained SAC deterministically, records only successful episodes, and formats actions into sliding-window chunks of size `Tp=4`. Collects ~100k transitions and saves `expert_data.pt` with keys `{"states": [N,75], "action_chunks": [N,4,20]}`.
 * Re-running the script skips Phase A automatically if `teacher_sac.zip` already exists.
 
