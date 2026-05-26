@@ -3,6 +3,8 @@ generate_expert_data.py
 
 Phase A: Trains a SAC expert on HandManipulateEggDense-v1 using the same
           DiffusionStateNormalizer obs stack as the DPPO agent.
+          Saves a resume checkpoint + replay buffer every CHECKPOINT_FREQ steps
+          so Colab disconnects can be recovered without restarting from scratch.
 Phase B: Records successful episodes into sliding-window action chunks and
           saves expert_data.pt: {"states": [N,75], "action_chunks": [N,4,20]}
 """
@@ -15,7 +17,7 @@ import gymnasium as gym
 import gymnasium_robotics
 
 from stable_baselines3 import SAC
-from stable_baselines3.common.callbacks import BaseCallback, EvalCallback
+from stable_baselines3.common.callbacks import BaseCallback, CallbackList
 from stable_baselines3.common.monitor import Monitor
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -33,6 +35,9 @@ N_EVAL_EPISODES    = 20           # episodes per success-rate check
 SUCCESS_THRESHOLD  = 0.95         # stop training once this is reached
 SAC_SAVE_PATH      = "teacher_sac"
 EXPERT_DATA_PATH   = "expert_data.pt"
+RESUME_PATH        = "teacher_sac_resume"          # overwritten every CHECKPOINT_FREQ steps
+RESUME_BUFFER_PATH = "teacher_sac_resume_buffer.pkl"
+CHECKPOINT_FREQ    = 50_000       # save resume checkpoint every N steps
 # ──────────────────────────────────────────────────────────────────────────────
 
 
@@ -56,19 +61,17 @@ def make_env(dense: bool = True):
 class StopOnSuccessRate(BaseCallback):
     """
     Evaluates success rate every eval_freq steps.
-    Stops training and saves the model when success_threshold is reached.
-    Uses its own eval_env so it does not interfere with the training env's
-    running normalisation stats.
+    Stops training and saves the best model when success_threshold is reached.
     """
     def __init__(self, eval_env, eval_freq, success_threshold,
                  n_eval_episodes=20, save_path=SAC_SAVE_PATH, verbose=1):
         super().__init__(verbose)
-        self.eval_env         = eval_env
-        self.eval_freq        = eval_freq
+        self.eval_env          = eval_env
+        self.eval_freq         = eval_freq
         self.success_threshold = success_threshold
-        self.n_eval_episodes  = n_eval_episodes
-        self.save_path        = save_path
-        self.best_rate        = 0.0
+        self.n_eval_episodes   = n_eval_episodes
+        self.save_path         = save_path
+        self.best_rate         = 0.0
 
     def _on_step(self) -> bool:
         if self.n_calls % self.eval_freq != 0:
@@ -100,52 +103,102 @@ class StopOnSuccessRate(BaseCallback):
         if rate >= self.success_threshold:
             print(f"\n  [Done]  Reached {rate*100:.1f}% ≥ "
                   f"{self.success_threshold*100:.1f}% target. Stopping SAC training.")
-            return False   # signals SB3 to stop
+            return False
 
         return True
 
 
-def train_sac():
+class ResumeCheckpointCallback(BaseCallback):
+    """
+    Saves model weights + replay buffer to a fixed path every checkpoint_freq steps.
+    On Colab disconnect, re-running the script will load this and continue from here.
+    """
+    def __init__(self, checkpoint_path, buffer_path, checkpoint_freq, verbose=1):
+        super().__init__(verbose)
+        self.checkpoint_path = checkpoint_path
+        self.buffer_path     = buffer_path
+        self.checkpoint_freq = checkpoint_freq
+
+    def _on_step(self) -> bool:
+        if self.n_calls % self.checkpoint_freq == 0:
+            self.model.save(self.checkpoint_path)
+            self.model.save_replay_buffer(self.buffer_path)
+            if self.verbose:
+                print(f"  [Resume checkpoint]  Saved @ {self.num_timesteps:,} steps "
+                      f"→ {self.checkpoint_path}.zip + {self.buffer_path}")
+        return True
+
+
+def train_sac(resume: bool = False):
     print("=" * 60)
     print("PHASE A — Training SAC expert on dense-reward environment")
+    if resume:
+        print(f"  Resuming from {RESUME_PATH}.zip")
     print("=" * 60)
 
     train_env = Monitor(make_env(dense=True))
     eval_env  = make_env(dense=True)
 
-    model = SAC(
-        "MlpPolicy",
-        train_env,
-        verbose          = 1,
-        learning_rate    = 3e-4,
-        batch_size       = 256,
-        buffer_size      = 1_000_000,
-        learning_starts  = 10_000,
-        ent_coef         = "auto",
-        gamma            = 0.98,
-        tau              = 0.02,
-        train_freq       = 1,
-        gradient_steps   = 1,
-        policy_kwargs    = dict(net_arch=[512, 512]),
+    if resume:
+        model = SAC.load(RESUME_PATH, env=train_env)
+        if os.path.exists(RESUME_BUFFER_PATH):
+            model.load_replay_buffer(RESUME_BUFFER_PATH)
+            print(f"  Replay buffer loaded — {model.replay_buffer.size():,} transitions")
+        steps_done    = model.num_timesteps
+        steps_left    = SAC_TIMESTEPS - steps_done
+        print(f"  Steps already completed: {steps_done:,} / {SAC_TIMESTEPS:,}")
+        print(f"  Steps remaining        : {steps_left:,}")
+        if steps_left <= 0:
+            print("  Already reached total budget — skipping learn().")
+            train_env.close()
+            eval_env.close()
+            best_model = SAC.load(SAC_SAVE_PATH, env=None)
+            return best_model
+    else:
+        steps_left = SAC_TIMESTEPS
+        model = SAC(
+            "MlpPolicy",
+            train_env,
+            verbose          = 1,
+            learning_rate    = 3e-4,
+            batch_size       = 256,
+            buffer_size      = 1_000_000,
+            learning_starts  = 10_000,
+            ent_coef         = "auto",
+            gamma            = 0.98,
+            tau              = 0.02,
+            train_freq       = 1,
+            gradient_steps   = 1,
+            policy_kwargs    = dict(net_arch=[512, 512]),
+        )
+
+    callbacks = CallbackList([
+        StopOnSuccessRate(
+            eval_env          = eval_env,
+            eval_freq         = EVAL_FREQ,
+            success_threshold = SUCCESS_THRESHOLD,
+            n_eval_episodes   = N_EVAL_EPISODES,
+            save_path         = SAC_SAVE_PATH,
+        ),
+        ResumeCheckpointCallback(
+            checkpoint_path = RESUME_PATH,
+            buffer_path     = RESUME_BUFFER_PATH,
+            checkpoint_freq = CHECKPOINT_FREQ,
+        ),
+    ])
+
+    model.learn(
+        total_timesteps    = steps_left,
+        callback           = callbacks,
+        log_interval       = 20,
+        reset_num_timesteps= not resume,
     )
 
-    callback = StopOnSuccessRate(
-        eval_env          = eval_env,
-        eval_freq         = EVAL_FREQ,
-        success_threshold = SUCCESS_THRESHOLD,
-        n_eval_episodes   = N_EVAL_EPISODES,
-        save_path         = SAC_SAVE_PATH,
-    )
-
-    model.learn(total_timesteps=SAC_TIMESTEPS, callback=callback, log_interval=20)
-
-    # Always save a final copy regardless of early stopping
     model.save(SAC_SAVE_PATH + "_final")
     print(f"\nFinal SAC model saved → {SAC_SAVE_PATH}_final.zip")
     train_env.close()
     eval_env.close()
 
-    # Load the best checkpoint (saved by callback)
     best_model = SAC.load(SAC_SAVE_PATH, env=None)
     print(f"Best model loaded from {SAC_SAVE_PATH}.zip")
     return best_model
@@ -159,15 +212,13 @@ def record_expert_data(model):
     print(f"Target: {TARGET_TRANSITIONS:,} transitions from successful episodes")
     print("=" * 60)
 
-    # Use a FRESH env for recording so normaliser stats start clean
-    # (the model was trained with dense rewards; we record on the same env)
     record_env = make_env(dense=True)
 
-    all_states  = []   # list of [75] arrays
-    all_chunks  = []   # list of [4, 20] arrays
+    all_states  = []
+    all_chunks  = []
 
-    total_transitions  = 0
-    episode_count      = 0
+    total_transitions   = 0
+    episode_count       = 0
     successful_episodes = 0
 
     while total_transitions < TARGET_TRANSITIONS:
@@ -175,29 +226,28 @@ def record_expert_data(model):
         done   = False
         info   = {}
 
-        ep_states  = []   # obs at each timestep
-        ep_actions = []   # SAC action at each timestep
+        ep_states  = []
+        ep_actions = []
 
         while not done:
             action, _ = model.predict(obs, deterministic=True)
-            ep_states.append(obs.copy())            # normalised [75]
-            ep_actions.append(action.copy())        # in [-1, 1]  [20]
+            ep_states.append(obs.copy())
+            ep_actions.append(action.copy())
             obs, _, terminated, truncated, info = record_env.step(action)
             done = terminated or truncated
 
         episode_count += 1
 
         if not info.get("is_success", False):
-            continue   # discard failed episodes entirely
+            continue
 
         successful_episodes += 1
         n = len(ep_actions)
 
-        # Sliding window: pair state_i with actions[i : i+CHUNK_SIZE]
         new_this_episode = 0
         for i in range(n - CHUNK_SIZE + 1):
-            state = ep_states[i]                                  # [75]
-            chunk = np.stack(ep_actions[i : i + CHUNK_SIZE])     # [4, 20]
+            state = ep_states[i]
+            chunk = np.stack(ep_actions[i : i + CHUNK_SIZE])
             all_states.append(state)
             all_chunks.append(chunk)
             total_transitions += 1
@@ -223,9 +273,8 @@ def record_expert_data(model):
           f"({successful_episodes/episode_count*100:.1f}%)")
     print(f"  Total transitions  : {total_transitions:,}")
 
-    # ── Build and save tensors ────────────────────────────────────────────────
-    states_np = np.array(all_states,  dtype=np.float32)   # [N, 75]
-    chunks_np = np.array(all_chunks,  dtype=np.float32)   # [N, 4, 20]
+    states_np = np.array(all_states, dtype=np.float32)
+    chunks_np = np.array(all_chunks, dtype=np.float32)
 
     states_t = torch.from_numpy(states_np)
     chunks_t = torch.from_numpy(chunks_np)
@@ -241,11 +290,16 @@ def record_expert_data(model):
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    # If a pre-trained SAC already exists, skip Phase A
     if os.path.exists(SAC_SAVE_PATH + ".zip"):
-        print(f"Found {SAC_SAVE_PATH}.zip — skipping Phase A and loading existing model.")
+        # Phase A fully done — best model already saved
+        print(f"Found {SAC_SAVE_PATH}.zip — skipping Phase A.")
         model = SAC.load(SAC_SAVE_PATH)
+    elif os.path.exists(RESUME_PATH + ".zip"):
+        # Phase A was interrupted — resume from last checkpoint
+        print(f"Found {RESUME_PATH}.zip — resuming Phase A from last checkpoint.")
+        model = train_sac(resume=True)
     else:
-        model = train_sac()
+        # Fresh start
+        model = train_sac(resume=False)
 
     record_expert_data(model)
