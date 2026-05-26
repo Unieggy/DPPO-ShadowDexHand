@@ -13,25 +13,54 @@ This repository contains a custom implementation of Diffusion Policy Policy Opti
 * Diffusion Strategy: DDIM sampling, with RL fine-tuning applied exclusively to the last K' steps of the denoising process
 
 ## Project Structure
-The implementation is modularized into four primary phases:
+The implementation is modularized into five primary components:
 
-### 1. Environment Wrappers & Data Pipeline
-* Chunking Wrapper: A custom Gym wrapper that accepts an action chunk of shape `[Ta, action_dim]`, executes actions sequentially in the base environment, aggregates rewards, and returns the final observation.
-* Normalization Wrapper: Scales all incoming state observations and outgoing actions to a strictly bounded range to ensure numerical stability for the diffusion model.
-* Reward Scaler: Stabilizes RL advantage calculations to prevent gradient explosion.
+### 0. Expert Data Generation (`generate_expert_data.py`)
+Must be run once before any DPPO training. Operates in two phases:
+* **Phase A — SAC Teacher**: Trains a Soft Actor-Critic agent on `HandManipulateBlockDense-v1` (dense reward variant) using `stable-baselines3`. Evaluates success rate every 20k steps and stops early when 95% is reached (up to 2M timesteps). Saves the best model as `teacher_sac.zip`.
+* **Phase B — Data Recording**: Runs the trained SAC deterministically, records only successful episodes, and formats actions into sliding-window chunks of size `Tp=4`. Collects ~100k transitions and saves `expert_data.pt` with keys `{"states": [N,75], "action_chunks": [N,4,20]}`.
+* Re-running the script skips Phase A automatically if `teacher_sac.zip` already exists.
 
-### 2. Neural Network Backbones
-* Actor (Diffusion MLP): Processes `[state, noisy_action_chunk, k_step]`. Utilizes sinusoidal positional embeddings for the `k_step`, concatenates features, and outputs predicted noise matching the action chunk shape.
-* Critic: A standard multi-layer perceptron outputting the scalar value estimate V(s).
+### 1. Environment Wrappers (`wrappers.py`)
+* **Chunking Wrapper**: Accepts an action chunk of shape `[Ta, action_dim]`, executes actions sequentially, aggregates rewards, and returns the final observation.
+* **Normalization Wrapper**: Online Welford running mean/variance normalization followed by tanh squashing. Ensures all observations stay in `[-1, 1]` for diffusion model stability.
+* **Reward Scaler**: Scales rewards by 0.01 to stabilize PPO advantage calculations.
 
-### 3. DPPO Math & Buffer
-* Dashcam Buffer: A custom rollout buffer designed to store intermediate states, noisy actions, refined actions, and log-probabilities for every k-step during the active fine-tuning window.
-* Advantage Estimation (GAE): Computes the advantage at the end of the physical environment macro-step (t) and back-assigns it to the internal denoising micro-steps (k).
-* PPO Objective: Implements the clipped surrogate loss function, calculating Gaussian log-likelihoods carefully to preserve numerical stability.
+### 2. Neural Network Backbones (`network.py`)
+* **Actor (Diffusion MLP)**: Processes `[state, noisy_action_chunk, k_step]`. Sinusoidal positional embeddings encode the diffusion timestep `k`, which is concatenated with the flattened state and noisy action before passing through a 4-layer Mish MLP. Outputs predicted noise of shape `[chunk_size, act_dim]`.
+* **Critic**: Standard MLP mapping state → scalar value `V(s)`. No k-step conditioning.
 
-### 4. Training Loops
-* Pre-training (Behavior Cloning): Supervised learning loop to train the initial MLP diffusion policy on demonstration data.
-* RL Fine-Tuning (DPPO): The main reinforcement learning loop. The frozen model handles early denoising steps, while the active model handles the final K' steps, records transitions to the Dashcam Buffer, steps the environment, and executes the PPO optimization phase.
+### 3. DPPO Math & Buffer (`dppo_math.py`)
+* **Dashcam Buffer**: Preallocated buffer storing `T×K'` micro-step transitions. Stores `x_k` (noisy actions), `committed_noises` (sampled ε), k-steps, log-probs, advantages, and returns.
+* **Advantage Estimation**: Single-step `A_t = r_t − V(s_t)` broadcast to all K' denoising steps of the same environment step.
+* **PPO Objective**: Clipped surrogate loss with Gaussian log-likelihoods computed in noise-prediction space.
+* **Log Variance Helper**: Extracts `log(β_k)` from the DDPM scheduler's noise schedule for policy variance.
+
+### 4. Training Loops (`train.py`)
+* **Behavior Cloning**: Supervised pretraining on `expert_data.pt`. Corrupts expert actions at random diffusion steps via `scheduler.add_noise()` and trains the actor to predict the added noise via MSE.
+* **Evaluation**: Deterministic rollout (no exploration noise) every 20 iterations. Tracks `is_success` from the environment. Saves `actor_best.pt` when success rate improves.
+* **DPPO Fine-Tuning**: K→0 denoising rollout with stochastic committed-noise sampling, PPO update over 4 epochs, periodic checkpointing every 50 iterations directly to Google Drive.
+
+### 5. Entry Points
+* **`main.ipynb`**: Colab notebook. Mounts Google Drive, copies project files, installs dependencies. Checks for `expert_data.pt` and runs BC pretraining if found, then runs DPPO. All checkpoints saved to `MyDrive/dppo/checkpoints/`.
+* **`visualize.py`**: Loads `actor_best.pt`, runs deterministic evaluation episodes with `render_mode="rgb_array"`, and saves `eval_result.mp4`.
+
+## Training Order
+```
+1. python generate_expert_data.py   # ~2-3 hours on Colab, run once
+2. main.ipynb                        # BC pretraining → DPPO fine-tuning
+3. python visualize.py               # render best policy to video
+```
+
+## Output Files
+| File | When saved | Contents |
+|---|---|---|
+| `teacher_sac.zip` | Phase A best checkpoint | SAC policy weights |
+| `expert_data.pt` | End of Phase B | `{states:[N,75], action_chunks:[N,4,20]}` |
+| `actor_bc.pt` | After BC pretraining | Actor weights before RL |
+| `actor_iter50.pt` ... | Every 50 DPPO iterations | Periodic safety checkpoints |
+| `actor_best.pt` | When eval success rate improves | Best policy by success rate |
+| `actor_final.pt` | End of 1000 iterations | Final policy weights |
 
 ## References
 * Original DPPO implementation and mathematical framework: https://github.com/irom-princeton/dppo
