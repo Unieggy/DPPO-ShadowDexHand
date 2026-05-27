@@ -18,9 +18,9 @@ The implementation is modularized into five primary components:
 
 ### 0. Expert Data Generation (`generate_expert_data.py`)
 Must be run once before any DPPO training. Operates in two phases:
-* **Phase A — SAC Teacher**: Trains a Soft Actor-Critic agent on `HandManipulateEggDense-v1` (dense reward variant) using `stable-baselines3`. Evaluates success rate every 20k steps and stops early when 95% is reached (up to 2M timesteps). Saves the best model as `teacher_sac.zip`.
-* **Phase B — Data Recording**: Runs the trained SAC deterministically, records only successful episodes, and formats actions into sliding-window chunks of size `Tp=4`. Collects ~100k transitions and saves `expert_data.pt` with keys `{"states": [N,75], "action_chunks": [N,4,20]}`.
-* Re-running the script skips Phase A automatically if `teacher_sac.zip` already exists.
+* **Phase A — SAC+HER Teacher**: Trains a SAC agent with **Hindsight Experience Replay** on `HandManipulateEgg-v1` (sparse reward) using `stable-baselines3`. HER relabels failed episodes with achieved goals, providing dense synthetic learning signal even when the true success rate is near zero. Uses `MultiInputPolicy` on the raw Dict observation space `{observation, achieved_goal, desired_goal}`. Evaluates every 20k steps, stops early at 95% success (up to 2M timesteps). Saves the best model as `teacher_sac.zip`. A resume checkpoint (`teacher_sac_resume.zip` + replay buffer) is overwritten every 50k steps — re-running the script automatically resumes from here if interrupted.
+* **Phase B — Data Recording**: Runs the trained SAC deterministically on the same Dict obs env. Flattens each obs, collects only successful episodes, and formats actions into sliding-window chunks of size `Tp=4`. States are batch-normalized (mean/std + tanh) over all 100k recorded transitions before saving, putting them in `[-1, 1]` to match the DPPO actor's expected input range. Saves `expert_data.pt` with keys `{"states": [N,75], "action_chunks": [N,4,20]}`.
+* Re-running skips Phase A automatically if `teacher_sac.zip` already exists.
 
 ### 1. Environment Wrappers (`wrappers.py`)
 * **Chunking Wrapper**: Accepts an action chunk of shape `[Ta, action_dim]`, executes actions sequentially, aggregates rewards, and returns the final observation.
@@ -56,7 +56,9 @@ Must be run once before any DPPO training. Operates in two phases:
 ## Output Files
 | File | When saved | Contents |
 |---|---|---|
-| `teacher_sac.zip` | Phase A best checkpoint | SAC policy weights |
+| `teacher_sac.zip` | Phase A best checkpoint | SAC+HER policy weights |
+| `teacher_sac_resume.zip` | Every 50k SAC steps | Resume checkpoint (overwritten each time) |
+| `teacher_sac_resume_buffer.pkl` | Every 50k SAC steps | HER replay buffer for resume |
 | `expert_data.pt` | End of Phase B | `{states:[N,75], action_chunks:[N,4,20]}` |
 | `actor_bc.pt` | After BC pretraining | Actor weights before RL |
 | `actor_iter50.pt` ... | Every 50 DPPO iterations | Periodic safety checkpoints |
