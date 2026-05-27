@@ -4,7 +4,8 @@
 This repository contains a custom implementation of Diffusion Policy Policy Optimization (DPPO) tailored for high-dimensional, state-based dexterous manipulation tasks. The target environment is the `gymnasium-robotics` Shadow Dexterous Hand tasked with **in-hand egg reorientation** (`HandManipulateEgg-v1`). The egg was chosen over the block because its rotational symmetry around one axis reduces the number of hard-to-reach goal orientations, making it a more tractable first target for sparse-reward RL. This implementation bridges generative diffusion models with reinforcement learning by fine-tuning a pre-trained diffusion policy to maximize task rewards using PPO.
 
 ## Architecture and Design
-* Environment: `HandManipulateEgg-v1` / `HandManipulateEggDense-v1` (Shadow Dexterous Hand, gymnasium-robotics)
+* Environment: `HandManipulateEgg-v1` (Shadow Dexterous Hand, gymnasium-robotics) — sparse reward
+* Expert Teacher: SAC + HER (`stable-baselines3`) trained on the same sparse env
 * Observation Space: 1D State Vector (requires strict [-1, 1] normalization)
 * Action Space: Continuous, High-dimensional (20 Degrees of Freedom)
 * Policy Format: Action Chunking (predicts Tp future steps, executes Ta steps)
