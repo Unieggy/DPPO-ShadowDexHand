@@ -24,6 +24,7 @@ def train_behavior_cloning(actor,diffusion_scheduler,expert_states,expert_action
     dataloader=DataLoader(dataset,batch_size=batch_size,shuffle=True)
 
     for epoch in range(epochs):
+        epoch_loss=0.0
         for batch_states,batch_actions in dataloader:
             batch_states=batch_states.to(device) #(batch_size,obs_dim)
             batch_actions=batch_actions.to(device)#(batch_size,chunk_size,act_dim)
@@ -43,7 +44,7 @@ def train_behavior_cloning(actor,diffusion_scheduler,expert_states,expert_action
             #noist_actions :[batch_size,chunk_size,act_dim]
             #hugging face diffuser, not a neural network just a strict mathmatical formulas to do the noise adding
             #built in method to do forward diffusion, actor is our diffusion mlp defined in network
-            
+
             noisy_actions=diffusion_scheduler.add_noise(batch_actions,pure_noise,random_ks)
 
             #4 neural network forward pass
@@ -57,6 +58,10 @@ def train_behavior_cloning(actor,diffusion_scheduler,expert_states,expert_action
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            epoch_loss+=loss.item()
+
+        if (epoch+1)%10==0 or epoch==0:
+            print(f"  BC Epoch {epoch+1}/{epochs}  loss={epoch_loss/len(dataloader):.4f}")
     return actor
 
 def evaluate_policy(env, actor, diffusion_scheduler, K, device, num_episodes=5):
@@ -73,7 +78,7 @@ def evaluate_policy(env, actor, diffusion_scheduler, K, device, num_episodes=5):
         for ep in range(num_episodes):
             obs,_=env.reset()
             done=False
-            info={}
+            ep_success=False
 
             while not done:
                 obs_tensor=torch.tensor(obs,dtype=torch.float32,device=device).unsqueeze(0)
@@ -87,9 +92,11 @@ def evaluate_policy(env, actor, diffusion_scheduler, K, device, num_episodes=5):
 
                 action=x.cpu().numpy()[0,:Ta]
                 obs,_,terminated,truncated,info=env.step(action)
+                if info.get('success',False):
+                    ep_success=True
                 done=terminated or truncated
 
-            if info.get('success',False):
+            if ep_success:
                 successes+=1
 
     actor.train()
@@ -119,13 +126,14 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
         print(f"Iteration {iteration+1}/{num_iterations}")
         print(f"  [Rollout] Collecting {num_env_steps} environment steps...")
 
-        #collect a specific number of environment trajectories
+        #collect a specific number of environment steps across episodes
+        obs,_=env.reset()
+        Ta=env.action_space.shape[0]
+
         for t in range(num_env_steps):
-            
-            state,_=env.reset() # base env state
 
             #[1, obs_dim]
-            state=torch.tensor(state,dtype=torch.float32,device=device).unsqueeze(0)
+            state=torch.tensor(obs,dtype=torch.float32,device=device).unsqueeze(0)
 
             #start diffusion from pure noise
             #noisy action:[1,chunk_size,act_dim]
@@ -159,13 +167,13 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
                         window_log_probs.append(old_log_prob.squeeze(0))
 
                     noisy_action=diffusion_scheduler.step(noise_pred,k,noisy_action).prev_sample
+
                 #env execution
-                Ta=env.action_space.shape[0]
                 final_action_chunk=noisy_action.cpu().numpy()[0,:Ta]
-                next_state,reward,done,_,_=env.step(final_action_chunk)
+                obs,reward,done,truncated,_=env.step(final_action_chunk)
                 rollout_rewards.append(reward)
 
-                #advtange calculation and broadcast
+                #advantage calculation and broadcast
                 state_value=critic(state).squeeze()
                 env_advantage=torch.tensor([reward],device=device)-state_value
                 env_return=torch.tensor([reward],device=device)
@@ -175,6 +183,9 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
                     torch.stack(window_committed_noises),torch.stack(window_ks),
                     torch.stack(window_log_probs),env_advantage,env_return
                 )
+
+                if done or truncated:
+                    obs,_=env.reset()
 
         mean_reward=sum(rollout_rewards)/len(rollout_rewards)
         print(f"  [Rollout] Done. Mean reward: {mean_reward:.4f}  Min: {min(rollout_rewards):.4f}  Max: {max(rollout_rewards):.4f}")
@@ -201,6 +212,7 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
 
             optimizer_actor.zero_grad()
             actor_loss.backward()
+            torch.nn.utils.clip_grad_norm_(active_actor.parameters(), 0.5)
             optimizer_actor.step()
 
             print(f"    Epoch {epoch+1}/{ppo_epochs} — actor_loss: {actor_loss.item():.4f}  critic_loss: {critic_loss.item():.4f}")

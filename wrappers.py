@@ -90,7 +90,7 @@ class RewardScaler(gym.RewardWrapper):
         #called by gym after env.step()
         return reward*self.scale
 
-def make_dppo_env(env_id:str,Ta:int,reward_scale:float=0.01):
+def make_dppo_env(env_id:str,Ta:int,reward_scale:float=0.1):
     import gymnasium_robotics
     gym.register_envs(gymnasium_robotics)
     env=gym.make(env_id)

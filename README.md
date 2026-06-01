@@ -11,7 +11,7 @@ This repository contains a custom implementation of Diffusion Policy Policy Opti
 * Policy Format: Action Chunking (predicts Tp future steps, executes Ta steps)
 * Actor Network: MLP Backbone with Sinusoidal Positional Embeddings for the diffusion time-step (k)
 * Critic Network: Standard MLP predicting state value V(s)
-* Diffusion Strategy: DDIM sampling, with RL fine-tuning applied exclusively to the last K' steps of the denoising process
+* Diffusion Strategy: DDPM sampling (stochastic), with RL fine-tuning applied exclusively to the last K' steps of the denoising process
 
 ## Project Structure
 The implementation is modularized into five primary components:
