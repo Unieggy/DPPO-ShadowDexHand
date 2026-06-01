@@ -22,8 +22,8 @@ def download_and_convert():
         minari.download_dataset(DATASET_ID)
         dataset=minari.load_dataset(DATASET_ID)
 
-        print(f"  Total episodes : {dataset.total_episodes:,}")
-        print(f"  Total steps    : {dataset.total_steps:,}")
+    print(f"  Total episodes : {dataset.total_episodes:,}")
+    print(f"  Total steps    : {dataset.total_steps:,}")
 
     all_states_raw=[]
     all_chuncks=[]
@@ -39,7 +39,7 @@ def download_and_convert():
 
         #Adroit stores per step success in info
         success=False
-        if episode.info is not None:
+        if episode.infos is not None:
             for key in ("success","goal_achieved"):
                 if key in episode.infos:
                     success=bool(np.any(episode.infos[key]))
@@ -54,8 +54,9 @@ def download_and_convert():
             all_states_raw.append(obs[i])
             all_chuncks.append(actions[i:i+CHUNK_SIZE])
             total_transitions+=1
-        print(f"\n  Successful episodes : {successful_epi} / {total_epi}")
-        print(f"  Transitions         : {total_transitions:,}")
+
+    print(f"\n  Successful episodes : {successful_epi} / {total_epi}")
+    print(f"  Transitions         : {total_transitions:,}")
 
     #fallback
     if total_transitions==0:
@@ -71,7 +72,7 @@ def download_and_convert():
         print(f"transitions all: {total_transitions:,}")
 
     #batch-normalize mean/std+tanh [-1,1]
-    states_raw=np.array(all_states_raw,dype=np.float32)#n,45, n is the sum of  timestamp for each epi
+    states_raw=np.array(all_states_raw,dtype=np.float32)#n,45, n is the sum of  timestamp for each epi
     mean=states_raw.mean(axis=0)
     std=states_raw.std(axis=0)+1e-8
     states_norm=np.tanh((states_raw-mean)/std).astype(np.float32)

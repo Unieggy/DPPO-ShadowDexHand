@@ -31,7 +31,7 @@ def train_behavior_cloning(actor,diffusion_scheduler,expert_states,expert_action
             #1 randomize diffusion steps k
             #we train the network to denoise from any step in the sequence
             #random_ks:[batch_size]
-            random_ks=torch.randint(0,K,(batch_size,),device=device,dtype=torch.long)
+            random_ks=torch.randint(0,K,(batch_states.shape[0],),device=device,dtype=torch.long)
 
 
             #2 generate pure gaussian noise
@@ -89,7 +89,7 @@ def evaluate_policy(env, actor, diffusion_scheduler, K, device, num_episodes=5):
                 obs,_,terminated,truncated,info=env.step(action)
                 done=terminated or truncated
 
-            if info.get('is_success',False):
+            if info.get('success',False):
                 successes+=1
 
     actor.train()
