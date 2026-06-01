@@ -1,13 +1,13 @@
 # DPPO for Dexterous Manipulation
 
 ## Overview
-This repository contains a custom implementation of Diffusion Policy Policy Optimization (DPPO) tailored for high-dimensional, state-based dexterous manipulation tasks. The target environment is the `gymnasium-robotics` Shadow Dexterous Hand tasked with **in-hand egg reorientation** (`HandManipulateEgg-v1`). The egg was chosen over the block because its rotational symmetry around one axis reduces the number of hard-to-reach goal orientations, making it a more tractable first target for sparse-reward RL. This implementation bridges generative diffusion models with reinforcement learning by fine-tuning a pre-trained diffusion policy to maximize task rewards using PPO.
+This repository contains a custom implementation of Diffusion Policy Policy Optimization (DPPO) tailored for high-dimensional, state-based dexterous manipulation tasks. The target environment is the `gymnasium-robotics` **Adroit Hand Pen task** (`AdroitHandPen-v1`), where a 24-DoF Shadow Hand must reorient a pen to match a randomized target orientation. Expert demonstrations are downloaded directly from the **Minari** offline RL dataset library (human demonstrations), bypassing the need to train an RL teacher. This implementation bridges generative diffusion models with reinforcement learning by fine-tuning a pre-trained diffusion policy to maximize task rewards using PPO.
 
 ## Architecture and Design
-* Environment: `HandManipulateEgg-v1` (Shadow Dexterous Hand, gymnasium-robotics) — sparse reward
-* Expert Teacher: SAC + HER (`stable-baselines3`) trained on the same sparse env
-* Observation Space: 1D State Vector (requires strict [-1, 1] normalization)
-* Action Space: Continuous, High-dimensional (20 Degrees of Freedom)
+* Environment: `AdroitHandPen-v1` (Adroit Hand, gymnasium-robotics) — sparse reward (10.0 success / -0.1 otherwise)
+* Expert Data: Human demonstrations downloaded from Minari (`pen-human-v0` or equivalent)
+* Observation Space: 1D flat state vector, ~45 dims (verify with `env.observation_space.shape[0]`)
+* Action Space: Continuous, 24 Degrees of Freedom (absolute joint angles, scaled to [-1, 1])
 * Policy Format: Action Chunking (predicts Tp future steps, executes Ta steps)
 * Actor Network: MLP Backbone with Sinusoidal Positional Embeddings for the diffusion time-step (k)
 * Critic Network: Standard MLP predicting state value V(s)
@@ -16,11 +16,11 @@ This repository contains a custom implementation of Diffusion Policy Policy Opti
 ## Project Structure
 The implementation is modularized into five primary components:
 
-### 0. Expert Data Generation (`generate_expert_data.py`)
-Must be run once before any DPPO training. Operates in two phases:
-* **Phase A — SAC+HER Teacher**: Trains a SAC agent with **Hindsight Experience Replay** on `HandManipulateEgg-v1` (sparse reward) using `stable-baselines3`. HER relabels failed episodes with achieved goals, providing dense synthetic learning signal even when the true success rate is near zero. Uses `MultiInputPolicy` on the raw Dict observation space `{observation, achieved_goal, desired_goal}`. Evaluates every 20k steps, stops early at 95% success (up to 2M timesteps). Saves the best model as `teacher_sac.zip`. A resume checkpoint (`teacher_sac_resume.zip` + replay buffer) is overwritten every 50k steps — re-running the script automatically resumes from here if interrupted.
-* **Phase B — Data Recording**: Runs the trained SAC deterministically on the same Dict obs env. Flattens each obs, collects only successful episodes, and formats actions into sliding-window chunks of size `Tp=4`. States are batch-normalized (mean/std + tanh) over all 100k recorded transitions before saving, putting them in `[-1, 1]` to match the DPPO actor's expected input range. Saves `expert_data.pt` with keys `{"states": [N,75], "action_chunks": [N,4,20]}`.
-* Re-running skips Phase A automatically if `teacher_sac.zip` already exists.
+### 0. Expert Data (`download_expert_data.py`)
+Downloads and converts human demonstration data from Minari into the format expected by BC pretraining. Run once before any training.
+* **Download**: Fetches `pen-human-v0` (or the available pen dataset) via `minari.load_dataset()`.
+* **Conversion**: Extracts `(observation, action)` pairs from all episodes, creates sliding-window action chunks of size `Tp=4`, and batch-normalizes states (mean/std + tanh) to put them in `[-1, 1]`.
+* **Output**: Saves `expert_data.pt` with keys `{"states": [N, obs_dim], "action_chunks": [N, 4, 24]}`.
 
 ### 1. Environment Wrappers (`wrappers.py`)
 * **Chunking Wrapper**: Accepts an action chunk of shape `[Ta, action_dim]`, executes actions sequentially, aggregates rewards, and returns the final observation.
@@ -44,26 +44,34 @@ Must be run once before any DPPO training. Operates in two phases:
 
 ### 5. Entry Points
 * **`main.ipynb`**: Colab notebook. Mounts Google Drive, copies project files, installs dependencies. Checks for `expert_data.pt` and runs BC pretraining if found, then runs DPPO. All checkpoints saved to `MyDrive/dppo/checkpoints/`.
-* **`visualize.py`**: Loads `actor_best.pt`, runs deterministic evaluation episodes with `render_mode="rgb_array"`, and saves `eval_result.mp4`.
+* **`visualize.py`**: Loads checkpoints, runs deterministic evaluation, saves `eval_result.mp4`. Also generates the **BC vs DPPO comparison plot** — success rate of the BC-only policy vs the DPPO fine-tuned policy to demonstrate RL improvement.
+
+## Demonstrating DPPO Effectiveness
+The standard comparison used in the DPPO paper is:
+
+| Policy | Description |
+|---|---|
+| **BC only** | `actor_bc.pt` — pure imitation, no RL |
+| **BC + DPPO** | `actor_best.pt` — BC init fine-tuned with PPO |
+
+`visualize.py` evaluates both checkpoints over 20 episodes each and plots success rate side-by-side. A meaningful result shows DPPO pushing success rate above the BC baseline, demonstrating that RL fine-tuning on the diffusion denoising steps extracts additional task performance beyond what imitation alone achieves.
 
 ## Training Order
 ```
-1. python generate_expert_data.py   # ~2-3 hours on Colab, run once
+1. python download_expert_data.py   # fetch Minari data, convert to expert_data.pt
 2. main.ipynb                        # BC pretraining → DPPO fine-tuning
-3. python visualize.py               # render best policy to video
+3. python visualize.py               # render video + BC vs DPPO comparison plot
 ```
 
 ## Output Files
 | File | When saved | Contents |
 |---|---|---|
-| `teacher_sac.zip` | Phase A best checkpoint | SAC+HER policy weights |
-| `teacher_sac_resume.zip` | Every 50k SAC steps | Resume checkpoint (overwritten each time) |
-| `teacher_sac_resume_buffer.pkl` | Every 50k SAC steps | HER replay buffer for resume |
-| `expert_data.pt` | End of Phase B | `{states:[N,75], action_chunks:[N,4,20]}` |
-| `actor_bc.pt` | After BC pretraining | Actor weights before RL |
+| `expert_data.pt` | After download script | `{states:[N,obs_dim], action_chunks:[N,4,24]}` |
+| `actor_bc.pt` | After BC pretraining | Actor weights before RL (BC baseline) |
 | `actor_iter50.pt` ... | Every 50 DPPO iterations | Periodic safety checkpoints |
 | `actor_best.pt` | When eval success rate improves | Best policy by success rate |
 | `actor_final.pt` | End of 1000 iterations | Final policy weights |
 
 ## References
 * Original DPPO implementation and mathematical framework: https://github.com/irom-princeton/dppo
+* Adroit Hand demonstrations: Rajeswaran et al., "Learning Complex Dexterous Manipulation with Deep Reinforcement Learning and Demonstrations" (2018)

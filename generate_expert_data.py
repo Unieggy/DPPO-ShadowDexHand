@@ -21,7 +21,7 @@ import gymnasium_robotics
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import BaseCallback, CallbackList
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.buffers import HerReplayBuffer
+from stable_baselines3 import HerReplayBuffer
 
 gym.register_envs(gymnasium_robotics)
 
