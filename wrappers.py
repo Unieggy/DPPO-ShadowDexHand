@@ -94,10 +94,6 @@ def make_dppo_env(env_id:str,Ta:int,reward_scale:float=0.01):
     import gymnasium_robotics
     gym.register_envs(gymnasium_robotics)
     env=gym.make(env_id)
-
-    if isinstance(env.observation_space,gym.spaces.Dict):
-        env=gym.wrappers.FlattenObservation(env)
-
     env=DiffusionStateNormalizer(env)
     env=RewardScaler(env,scale=reward_scale)
     env=ActionChunkingWrapper(env,chunk_size=Ta)

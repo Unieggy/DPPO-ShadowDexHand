@@ -9,7 +9,7 @@ from network import DiffusionMLPActor
 from wrappers import DiffusionStateNormalizer
 
 # ── Config ────────────────────────────────────────────────────────────────────
-ENV_ID       = "HandManipulateBlockRotateXYZ-v1"
+ENV_ID       = "AdriotHandPen-v1"
 OBS_DIM      = 75
 ACT_DIM      = 20
 CHUNK_SIZE   = 4
@@ -18,7 +18,7 @@ HIDDEN_DIM   = 256
 CHECKPOINT   = "checkpoints/actor_final.pt"
 OUTPUT_VIDEO = "eval_result.mp4"
 NUM_EPISODES = 3
-FPS          = 30
+FPS          =30
 DEVICE       = "cuda" if torch.cuda.is_available() else "cpu"
 # ──────────────────────────────────────────────────────────────────────────────
 
