@@ -91,7 +91,7 @@ def calculate_gaussian_log_prob(predicted_noise, target_noise, log_variance):
     #log(2*pi) approx 1.837877
     #outputshape:[batch]
 
-    log_prob=-0.5*(scaled_error+log_variance+1.837877).sum(dim=(1,2))
+    log_prob=-0.5*(scaled_error+log_variance+1.837877).mean(dim=(1,2))
 
     return log_prob
 

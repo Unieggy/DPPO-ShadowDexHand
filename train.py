@@ -175,8 +175,11 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
 
                 #advantage calculation and broadcast
                 state_value=critic(state).squeeze()
-                env_advantage=torch.tensor([reward],device=device)-state_value
-                env_return=torch.tensor([reward],device=device)
+                next_state=torch.tensor(obs,dtype=torch.float32,device=device).unsqueeze(0)
+                gamma=0.99
+                next_val=critic(next_state).squeeze()*(1.0-float(done or truncated))
+                env_return=torch.tensor([reward],device=device)+gamma*next_val.detach()
+                env_advantage=env_return-state_value
 
                 buffer.add_trajectory(
                     torch.stack(window_states),torch.stack(window_actions),
