@@ -17,7 +17,7 @@ HIDDEN_DIM   = 256
 BC_CHECKPOINT   = "checkpoints/actor_bc.pt"
 BEST_CHECKPOINT = "checkpoints/actor_best.pt"
 OUTPUT_VIDEO = "eval_result.mp4"
-NUM_EPISODES = 20
+NUM_EPISODES = 10
 FPS          = 30
 DEVICE       = "cuda" if torch.cuda.is_available() else "cpu"
 # ──────────────────────────────────────────────────────────────────────────────

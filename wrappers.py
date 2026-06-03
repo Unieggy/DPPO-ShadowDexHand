@@ -31,7 +31,11 @@ class ActionChunkingWrapper(gym.Wrapper):
         for i in range(self.Ta):
             obs,reward,done,truncated,step_info=self.env.step(action_chunk[i])
             total_reward+=reward
+            # preserve success=True once achieved; don't let a later sub-step overwrite it
+            prev_success = info.get('success', False)
             info.update(step_info)
+            if prev_success:
+                info['success'] = True
 
             if done or truncated:
                 break
