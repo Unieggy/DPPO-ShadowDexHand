@@ -41,41 +41,36 @@ class ActionChunkingWrapper(gym.Wrapper):
 
 class DiffusionStateNormalizer(gym.ObservationWrapper):
     """
-    Normalizes 1D state observations to a strict[-1,1] range
-    Diffusion models degrade rapidly if state conditioning vectors explode
+    Normalizes 1D state observations to [-1,1] via tanh(z-score).
+    Accepts fixed mean/std from expert data (preferred) or falls back to
+    Welford online estimation if none are provided.
     """
 
-    def __init__(self,env):
+    def __init__(self, env, mean=None, std=None):
         super().__init__(env)
-        assert isinstance(env.observation_space,gym.spaces.Box)
-        self.eps=1e-8 # small number to prevent division by 0
+        assert isinstance(env.observation_space, gym.spaces.Box)
+        self.eps = 1e-8
 
-        #mean variance to calculate the deviation
-        self.running_mean=np.zeros(env.observation_space.shape,dtype=np.float32)#[obs_dim]
-        self.running_var=np.ones(env.observation_space.shape,dtype=np.float32)#[obs_dim]
-        self.count=1e-4
+        if mean is not None and std is not None:
+            self.fixed = True
+            self.mean = np.array(mean, dtype=np.float32)
+            self.std  = np.array(std,  dtype=np.float32)
+        else:
+            self.fixed = False
+            self.running_mean = np.zeros(env.observation_space.shape, dtype=np.float32)
+            self.running_var  = np.ones(env.observation_space.shape,  dtype=np.float32)
+            self.count = 1e-4
 
-    def observation(self,observation):
-        """
-        This function is automatically called by Gym every time env.step() 
-        or env.reset() produces a new observation.
-        observation Shape: [obs_dim]
-        """
-        self.count+=1 # update total step
-        
-        #calculate how far this is from the mean
-        delta=observation-self.running_mean
-        #new mean=old mean+(x-oldmean)/new count
-        self.running_mean+=delta/self.count # update the mean based on welford alg
+    def observation(self, observation):
+        if self.fixed:
+            return np.tanh((observation - self.mean) / (self.std + self.eps)).astype(np.float32)
 
-        self.running_var+=delta*(observation-self.running_mean)#update the variance
-
-        #calculate std
-        var=self.running_var/self.count
-        std=np.sqrt(np.maximum(var,self.eps))
-        normalized_obs=(observation-self.running_mean)/std # z score
-
-        return np.tanh(normalized_obs)
+        self.count += 1
+        delta = observation - self.running_mean
+        self.running_mean += delta / self.count
+        self.running_var  += delta * (observation - self.running_mean)
+        std = np.sqrt(np.maximum(self.running_var / self.count, self.eps))
+        return np.tanh((observation - self.running_mean) / std)
 
 class RewardScaler(gym.RewardWrapper):
     """
@@ -90,11 +85,11 @@ class RewardScaler(gym.RewardWrapper):
         #called by gym after env.step()
         return reward*self.scale
 
-def make_dppo_env(env_id:str,Ta:int,reward_scale:float=0.1):
+def make_dppo_env(env_id:str, Ta:int, reward_scale:float=0.1, obs_mean=None, obs_std=None):
     import gymnasium_robotics
     gym.register_envs(gymnasium_robotics)
     env=gym.make(env_id)
-    env=DiffusionStateNormalizer(env)
+    env=DiffusionStateNormalizer(env, mean=obs_mean, std=obs_std)
     env=RewardScaler(env,scale=reward_scale)
     env=ActionChunkingWrapper(env,chunk_size=Ta)
     env=gym.wrappers.RescaleAction(env,min_action=-1.0,max_action=1.0)

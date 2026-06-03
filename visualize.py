@@ -24,10 +24,17 @@ DEVICE       = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def build_eval_env():
+    import os
+    obs_mean = obs_std = None
+    if os.path.exists("expert_data.pt"):
+        _stats = torch.load("expert_data.pt", map_location="cpu")
+        if "obs_mean" in _stats:
+            obs_mean = _stats["obs_mean"].numpy()
+            obs_std  = _stats["obs_std"].numpy()
     env = gym.make(ENV_ID, render_mode="rgb_array")
     if isinstance(env.observation_space, gym.spaces.Dict):
         env = gym.wrappers.FlattenObservation(env)
-    env = DiffusionStateNormalizer(env)
+    env = DiffusionStateNormalizer(env, mean=obs_mean, std=obs_std)
     return env
 
 

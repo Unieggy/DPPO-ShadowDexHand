@@ -103,7 +103,7 @@ def evaluate_policy(env, actor, diffusion_scheduler, K, device, num_episodes=5):
     return successes/num_episodes
 
 
-def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,K_prime,device="cpu",save_dir="checkpoints",save_every=50,eval_every=20,num_eval_episodes=5):
+def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,K_prime,device="cpu",save_dir="checkpoints",save_every=50,eval_every=20,num_eval_episodes=20):
     """
     PROCESS: REINFORCEMENT LEARNING (DPPO)
     Fine-tunes the behavior-cloned policy using environment rewards.
@@ -112,8 +112,8 @@ def train_dppo(env,old_actor,active_actor,critic, buffer, diffusion_scheduler,K,
     optimizer_actor=optim.AdamW(active_actor.parameters(),lr=1e-5)
     optimizer_critic=optim.AdamW(critic.parameters(),lr=3e-4)
 
-    num_iterations=1000
-    ppo_epochs=4 #times we sweep thru the buffer per iteration
+    num_iterations=500
+    ppo_epochs=2 #times we sweep thru the buffer per iteration
     num_env_steps=buffer.total_capacity//K_prime
     best_success_rate=-1.0
 

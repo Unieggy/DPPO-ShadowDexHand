@@ -85,7 +85,12 @@ def download_and_convert():
     print(f"  states       : {states_t.shape}  dtype={states_t.dtype}")
     print(f"  action_chunks: {chunks_t.shape}  dtype={chunks_t.dtype}")
 
-    torch.save({"states": states_t, "action_chunks": chunks_t}, EXPERT_DATA_PATH)
+    torch.save({
+        "states": states_t,
+        "action_chunks": chunks_t,
+        "obs_mean": torch.from_numpy(mean),
+        "obs_std": torch.from_numpy(std),
+    }, EXPERT_DATA_PATH)
     print(f"\nSaved → {EXPERT_DATA_PATH}")
 
 
