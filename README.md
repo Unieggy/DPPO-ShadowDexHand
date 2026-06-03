@@ -5,15 +5,14 @@ This repository contains a custom implementation of Diffusion Policy Policy Opti
 
 ## Results
 
-### BC vs DPPO Comparison
-![BC vs DPPO](bc_vs_dppo.png)
+<table>
+  <tr>
+    <td align="center"><b>BC vs DPPO Comparison</b><br><img src="bc_vs_dppo.png" width="340"/></td>
+    <td align="center"><b>Policy Rollout</b><br><img src="eval_result.gif" width="340"/></td>
+  </tr>
+</table>
 
 DPPO fine-tuning improves success rate over the BC baseline on `AdroitHandPen-v1`. Results evaluated over 20 episodes using fixed expert normalization stats.
-
-### Policy Rollout
-The GIF below shows the DPPO fine-tuned policy (`actor_best.pt`) controlling the Adroit Hand to reorient a pen:
-
-![Policy Rollout](eval_result.gif)
 
 ## Architecture and Design
 * Environment: `AdroitHandPen-v1` (Adroit Hand, gymnasium-robotics) — dense reward with +10.0 success bonus
