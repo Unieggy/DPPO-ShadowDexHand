@@ -1,0 +1,57 @@
+[
+  {
+    "id": "layer:training-core",
+    "name": "Training Core",
+    "description": "BC pretraining, DPPO fine-tuning logic, and mathematical utilities (PPO objective, Gaussian log-prob, diffusion log-variance, replay buffer).",
+    "nodeIds": [
+      "file:train.py",
+      "file:dppo_math.py"
+    ]
+  },
+  {
+    "id": "layer:neural-networks",
+    "name": "Neural Networks",
+    "description": "PyTorch model architectures for the diffusion policy actor and value critic, including sinusoidal positional embeddings.",
+    "nodeIds": [
+      "file:network.py"
+    ]
+  },
+  {
+    "id": "layer:environment",
+    "name": "Environment",
+    "description": "Gymnasium environment wrappers that handle action chunking, observation/action normalization, and reward scaling for diffusion policy rollouts.",
+    "nodeIds": [
+      "file:wrappers.py"
+    ]
+  },
+  {
+    "id": "layer:data-pipeline",
+    "name": "Data Pipeline",
+    "description": "Standalone script for downloading Minari expert demonstrations and converting them into the training format required by behavior cloning.",
+    "nodeIds": [
+      "file:download_expert_data.py"
+    ]
+  },
+  {
+    "id": "layer:evaluation",
+    "name": "Evaluation & Visualization",
+    "description": "Top-level evaluation utilities for comparing BC and DPPO checkpoints, running rollouts, and recording comparison videos.",
+    "nodeIds": [
+      "file:visualize.py"
+    ]
+  },
+  {
+    "id": "layer:project-support",
+    "name": "Project Support",
+    "description": "Documentation, entry-point notebook, trained model checkpoints, and auto-generated metadata files.",
+    "nodeIds": [
+      "document:README.md",
+      "file:main.ipynb",
+      "file:checkpoints/actor_bc.pt",
+      "file:checkpoints/actor_best.pt",
+      "file:.DS_Store",
+      "file:checkpoints/.DS_Store",
+      "file:.understand-anything/.understandignore"
+    ]
+  }
+]

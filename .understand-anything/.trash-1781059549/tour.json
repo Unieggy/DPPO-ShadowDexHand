@@ -1,0 +1,44 @@
+[
+  {
+    "order": 1,
+    "title": "Project Overview",
+    "description": "Start with the README to understand the full scope of this DPPO implementation. The project targets the AdroitHandPen-v1 environment, where a 24-DoF Shadow Hand must reorient a pen. Key architectural decisions are documented here: action chunking (Tp=4 prediction horizon, Ta=2 execution horizon), DDPM-based diffusion with RL fine-tuning on only the last K'=3 denoising steps, and a two-phase training pipeline (behavior cloning from Minari expert data, then PPO fine-tuning). Pay attention to the training order and output files sections, which map the end-to-end workflow.",
+    "nodeIds": ["document:README.md"]
+  },
+  {
+    "order": 2,
+    "title": "Expert Data Pipeline",
+    "description": "Before any training can happen, expert demonstrations must be prepared. This script downloads the D4RL/pen/expert-v2 dataset from Minari (4,958 episodes of human pen manipulation), filters to only successful episodes (~4,130), and converts them into sliding-window action chunks of size Tp=4. Observations are batch-normalized using mean/std followed by tanh squashing to map states into [-1, 1]. The output expert_data.pt bundles states, action_chunks, and the normalization statistics (obs_mean, obs_std) that will be reused later during environment rollouts to prevent distribution shift between BC pretraining and RL fine-tuning.",
+    "nodeIds": ["file:download_expert_data.py"]
+  },
+  {
+    "order": 3,
+    "title": "Environment Wrappers",
+    "description": "The raw AdroitHandPen-v1 environment expects single-step actions, but a diffusion policy produces action chunks. This file defines three Gymnasium wrappers that bridge the gap. ActionChunkingWrapper accepts a [Ta, action_dim] chunk and executes each sub-action sequentially, accumulating rewards and preserving success flags. DiffusionStateNormalizer applies the same fixed mean/std + tanh normalization used during data preparation, ensuring the policy sees identically distributed observations at both training phases. RewardScaler multiplies rewards by 0.1 to keep PPO advantage magnitudes stable. The factory function make_dppo_env composes all wrappers in the correct order.",
+    "nodeIds": ["file:wrappers.py"]
+  },
+  {
+    "order": 4,
+    "title": "Neural Network Architecture",
+    "description": "This file defines the two neural networks at the heart of the system. SinusoidalPosEmb encodes the diffusion timestep k into a high-dimensional vector using the classic sin/cos positional encoding formula (PE(k,2i)=sin(k/10000^{2i/d})), giving the actor awareness of which denoising step it is performing. DiffusionMLPActor concatenates the encoded timestep with the flat state vector and the flattened noisy action chunk, then passes them through a 4-layer MLP with Mish activations to predict the noise that was added -- this is the epsilon-prediction formulation standard in DDPM. ValueCritic is a simpler 3-layer MLP with Tanh activations that maps a state to a scalar value V(s), used for advantage estimation during PPO. Note that the critic has no diffusion-step conditioning since it only needs to evaluate environment states.",
+    "nodeIds": ["file:network.py"]
+  },
+  {
+    "order": 5,
+    "title": "DPPO Mathematical Foundations",
+    "description": "This file contains the mathematical machinery that makes diffusion-aware PPO work. DashcamBuffer is a preallocated buffer that stores T x K' micro-step transitions -- for each physical environment step, it records the noisy action input (x_k), the committed noise (sampled epsilon), the diffusion step index, and log-probabilities for all K' fine-tuned denoising steps. A single environment-level advantage A_t = r_t + gamma*V(s') - V(s) is broadcast identically to all K' micro-steps belonging to that environment step. calculate_gaussian_log_prob computes log-likelihoods in noise-prediction space using the DDPM posterior variance (log beta_k) extracted by get_ddpm_log_variance. compute_ppo_objective implements the standard clipped surrogate loss with epsilon=0.2, operating on the ratio of new-to-old noise log-probabilities rather than traditional action log-probabilities.",
+    "nodeIds": ["file:dppo_math.py"]
+  },
+  {
+    "order": 6,
+    "title": "Training Pipeline",
+    "description": "This file implements both training phases. train_behavior_cloning performs supervised pretraining: for each batch, it samples random diffusion steps k, corrupts expert action chunks with Gaussian noise via the DDPM scheduler's add_noise, and trains the actor to predict the added noise using MSE loss. evaluate_policy runs deterministic denoising (full K-to-0 chain without stochastic sampling) and reports success rate. train_dppo is the RL fine-tuning loop running 500 iterations. Each iteration has two phases: (1) Rollout -- the frozen old_actor performs K-to-0 denoising with stochastic committed-noise sampling, storing only the last K'=3 steps in the DashcamBuffer alongside bootstrapped advantages; (2) PPO Update -- the active_actor recomputes noise predictions and log-probabilities for the buffered micro-steps, computes the clipped surrogate loss, and updates with gradient clipping at 0.5. The old actor is synced after each iteration. Checkpoints are saved every 50 iterations, with the best model tracked by evaluation success rate.",
+    "nodeIds": ["file:train.py"]
+  },
+  {
+    "order": 7,
+    "title": "Evaluation and Visualization",
+    "description": "The final step closes the loop by evaluating trained policies and producing visual results. compare_bc_vs_dppo loads both the BC-only checkpoint (actor_bc.pt) and the DPPO-fine-tuned checkpoint (actor_best.pt), runs each over multiple evaluation episodes, and generates a side-by-side bar chart (bc_vs_dppo.png) showing the success rate improvement from RL fine-tuning. render_video records an mp4 of the best available policy performing the pen reorientation task. This file also demonstrates the imports from network.py (DiffusionMLPActor) and wrappers.py (DiffusionStateNormalizer), showing how the evaluation pipeline reuses the same normalization and architecture modules to ensure consistency with training. The entry point main.ipynb orchestrates the full pipeline from data download through training to evaluation.",
+    "nodeIds": ["file:visualize.py", "file:main.ipynb"]
+  }
+]

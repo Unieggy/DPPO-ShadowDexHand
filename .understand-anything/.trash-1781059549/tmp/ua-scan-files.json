@@ -1,0 +1,100 @@
+{
+  "scriptCompleted": true,
+  "files": [
+    {
+      "path": ".DS_Store",
+      "language": "unknown",
+      "sizeLines": 2,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "checkpoints/.DS_Store",
+      "language": "unknown",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "checkpoints/actor_bc.pt",
+      "language": "pt",
+      "sizeLines": 6705,
+      "fileCategory": "code"
+    },
+    {
+      "path": "checkpoints/actor_best.pt",
+      "language": "pt",
+      "sizeLines": 6719,
+      "fileCategory": "code"
+    },
+    {
+      "path": "download_expert_data.py",
+      "language": "python",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "dppo_math.py",
+      "language": "python",
+      "sizeLines": 139,
+      "fileCategory": "code"
+    },
+    {
+      "path": "main.ipynb",
+      "language": "ipynb",
+      "sizeLines": 47,
+      "fileCategory": "code"
+    },
+    {
+      "path": "network.py",
+      "language": "python",
+      "sizeLines": 143,
+      "fileCategory": "code"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 88,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "train.py",
+      "language": "python",
+      "sizeLines": 242,
+      "fileCategory": "code"
+    },
+    {
+      "path": "visualize.py",
+      "language": "python",
+      "sizeLines": 175,
+      "fileCategory": "code"
+    },
+    {
+      "path": "wrappers.py",
+      "language": "python",
+      "sizeLines": 104,
+      "fileCategory": "code"
+    }
+  ],
+  "totalFiles": 13,
+  "filteredByIgnore": 0,
+  "estimatedComplexity": "small",
+  "stats": {
+    "filesScanned": 13,
+    "byCategory": {
+      "code": 12,
+      "docs": 1
+    },
+    "byLanguage": {
+      "unknown": 3,
+      "pt": 2,
+      "python": 6,
+      "ipynb": 1,
+      "markdown": 1
+    }
+  }
+}

@@ -1,0 +1,387 @@
+{
+  "nodes": [
+    {
+      "id": "file:network.py",
+      "type": "file",
+      "path": "network.py",
+      "label": "network.py",
+      "summary": "Defines neural network architectures for DPPO diffusion policy. Contains SinusoidalPosEmb for encoding diffusion timesteps, DiffusionMLPActor as the noise-predicting policy network that takes state/noisy-action/timestep and predicts noise, and ValueCritic that estimates state values V(s) for GAE computation.",
+      "tags": ["neural-network", "diffusion-model", "actor-critic", "pytorch", "policy"],
+      "complexity": "medium",
+      "language": "python",
+      "sizeLines": 144
+    },
+    {
+      "id": "file:visualize.py",
+      "type": "file",
+      "path": "visualize.py",
+      "label": "visualize.py",
+      "summary": "Visualization and evaluation utilities for comparing BC (behavior cloning) and DPPO checkpoints. Provides functions to build evaluation environments, load trained actors, run the full reverse diffusion denoising chain, evaluate policies over multiple episodes measuring success rate, generate comparison bar charts, and record rollout videos.",
+      "tags": ["evaluation", "visualization", "diffusion-inference", "video-recording", "comparison"],
+      "complexity": "medium",
+      "language": "python",
+      "sizeLines": 175
+    },
+    {
+      "id": "file:wrappers.py",
+      "type": "file",
+      "path": "wrappers.py",
+      "label": "wrappers.py",
+      "summary": "Gymnasium environment wrappers tailored for diffusion policy optimization. ActionChunkingWrapper executes a chunk of actions sequentially, DiffusionStateNormalizer normalizes observations to [-1,1] via tanh(z-score) using fixed or online statistics, RewardScaler scales rewards for stable PPO advantages, and make_dppo_env composes all wrappers into a ready-to-use training environment.",
+      "tags": ["environment-wrapper", "gymnasium", "action-chunking", "normalization", "reward-scaling"],
+      "complexity": "medium",
+      "language": "python",
+      "sizeLines": 104
+    },
+    {
+      "id": "class:network.py:SinusoidalPosEmb",
+      "type": "class",
+      "path": "network.py",
+      "label": "SinusoidalPosEmb",
+      "summary": "Standard sinusoidal positional embedding module that encodes diffusion timestep k into a dense vector. Uses the classic sin/cos frequency formulation PE(k,2i)=sin(k/10000^(2i/d)), PE(k,2i+1)=cos(k/10000^(2i/d)) to produce embeddings of shape [batch_size, dim].",
+      "tags": ["embedding", "positional-encoding", "diffusion"],
+      "startLine": 5,
+      "endLine": 58,
+      "methods": ["__init__", "forward"]
+    },
+    {
+      "id": "class:network.py:DiffusionMLPActor",
+      "type": "class",
+      "path": "network.py",
+      "label": "DiffusionMLPActor",
+      "summary": "The actor network for diffusion policy. Takes state, noisy action chunk, and diffusion timestep k as inputs. Flattens the action chunk, embeds the timestep via SinusoidalPosEmb, concatenates all inputs, and passes through a 4-layer MLP with Mish activations to predict the noise added at step k. Output is reshaped back to [batch_size, chunk_size, act_dim].",
+      "tags": ["actor", "diffusion-policy", "mlp", "noise-prediction"],
+      "startLine": 60,
+      "endLine": 124,
+      "methods": ["__init__", "forward"]
+    },
+    {
+      "id": "class:network.py:ValueCritic",
+      "type": "class",
+      "path": "network.py",
+      "label": "ValueCritic",
+      "summary": "Value function critic that maps state observations to a scalar value V(s). Uses a 3-layer MLP with Tanh activations. Used exclusively for computing Generalized Advantage Estimation (GAE) in the DPPO training loop.",
+      "tags": ["critic", "value-function", "GAE"],
+      "startLine": 126,
+      "endLine": 144,
+      "methods": ["__init__", "forward"]
+    },
+    {
+      "id": "function:visualize.py:build_eval_env",
+      "type": "function",
+      "path": "visualize.py",
+      "label": "build_eval_env",
+      "summary": "Constructs an evaluation environment for the AdroitHandPen task. Loads observation normalization statistics from expert_data.pt if available, creates the Gymnasium environment with rgb_array rendering, flattens Dict observation spaces, and wraps with DiffusionStateNormalizer.",
+      "tags": ["environment-setup", "evaluation"],
+      "startLine": 26,
+      "endLine": 38,
+      "params": []
+    },
+    {
+      "id": "function:visualize.py:run_denoising_chain",
+      "type": "function",
+      "path": "visualize.py",
+      "label": "run_denoising_chain",
+      "summary": "Executes the full K-to-0 reverse diffusion pass. Starts from pure Gaussian noise, iteratively denoises using the actor network and DDPM scheduler to produce a clean action chunk of shape [chunk_size, act_dim].",
+      "tags": ["diffusion-inference", "denoising", "reverse-process"],
+      "startLine": 48,
+      "endLine": 59,
+      "params": ["actor", "scheduler", "obs_tensor"]
+    },
+    {
+      "id": "function:visualize.py:evaluate_actor",
+      "type": "function",
+      "path": "visualize.py",
+      "label": "evaluate_actor",
+      "summary": "Evaluates a trained actor over multiple episodes, computing success rate. For each episode, repeatedly generates action chunks via reverse diffusion and steps through the environment. Optionally records rendered frames for video generation.",
+      "tags": ["evaluation", "success-rate", "rollout"],
+      "startLine": 62,
+      "endLine": 89,
+      "params": ["actor", "scheduler", "env", "num_episodes", "record_frames"]
+    },
+    {
+      "id": "function:visualize.py:compare_bc_vs_dppo",
+      "type": "function",
+      "path": "visualize.py",
+      "label": "compare_bc_vs_dppo",
+      "summary": "Main comparison function that evaluates both the BC-only and BC+DPPO checkpoints, prints success rate statistics with improvement delta, and generates a matplotlib bar chart saved as bc_vs_dppo.png.",
+      "tags": ["comparison", "visualization", "bar-chart"],
+      "startLine": 92,
+      "endLine": 144,
+      "params": []
+    },
+    {
+      "id": "function:visualize.py:render_video",
+      "type": "function",
+      "path": "visualize.py",
+      "label": "render_video",
+      "summary": "Records and saves an MP4 video of the best available policy (DPPO if exists, else BC). Uses imageio to write frames captured during evaluation episodes at 30 FPS.",
+      "tags": ["video", "recording", "imageio"],
+      "startLine": 147,
+      "endLine": 170,
+      "params": []
+    },
+    {
+      "id": "class:wrappers.py:ActionChunkingWrapper",
+      "type": "class",
+      "path": "wrappers.py",
+      "label": "ActionChunkingWrapper",
+      "summary": "Gymnasium Wrapper that accepts a chunk of Ta actions and executes them sequentially in the base environment. Expands the action space to (Ta, action_dim), accumulates total reward across sub-steps, and preserves success flags once achieved.",
+      "tags": ["action-chunking", "gym-wrapper", "sequential-execution"],
+      "startLine": 3,
+      "endLine": 43,
+      "methods": ["__init__", "step"]
+    },
+    {
+      "id": "class:wrappers.py:DiffusionStateNormalizer",
+      "type": "class",
+      "path": "wrappers.py",
+      "label": "DiffusionStateNormalizer",
+      "summary": "ObservationWrapper that normalizes 1D state observations to [-1,1] using tanh(z-score). Supports two modes: fixed normalization with pre-computed mean/std from expert data, or online Welford estimation when statistics are not provided.",
+      "tags": ["normalization", "observation-wrapper", "welford"],
+      "startLine": 46,
+      "endLine": 77,
+      "methods": ["__init__", "observation"]
+    },
+    {
+      "id": "class:wrappers.py:RewardScaler",
+      "type": "class",
+      "path": "wrappers.py",
+      "label": "RewardScaler",
+      "summary": "RewardWrapper that multiplies rewards by a fixed scale factor (default 0.01) to maintain stable advantage values for PPO updates in dexterous manipulation tasks with sparse or rapidly exploding dense rewards.",
+      "tags": ["reward-scaling", "reward-wrapper", "PPO"],
+      "startLine": 79,
+      "endLine": 90,
+      "methods": ["__init__", "reward"]
+    },
+    {
+      "id": "function:visualize.py:load_actor",
+      "type": "function",
+      "path": "visualize.py",
+      "label": "load_actor",
+      "summary": "Instantiates a DiffusionMLPActor with predefined dimensions, loads weights from a checkpoint file, sets the model to eval mode, and returns it.",
+      "tags": ["model-loading", "checkpoint"],
+      "startLine": 41,
+      "endLine": 45,
+      "params": ["checkpoint_path"]
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:network.py",
+      "target": "class:network.py:SinusoidalPosEmb",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:network.py",
+      "target": "class:network.py:DiffusionMLPActor",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:network.py",
+      "target": "class:network.py:ValueCritic",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "function:visualize.py:build_eval_env",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "function:visualize.py:load_actor",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "function:visualize.py:run_denoising_chain",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "function:visualize.py:evaluate_actor",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "function:visualize.py:compare_bc_vs_dppo",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "function:visualize.py:render_video",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:wrappers.py",
+      "target": "class:wrappers.py:ActionChunkingWrapper",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:wrappers.py",
+      "target": "class:wrappers.py:DiffusionStateNormalizer",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:wrappers.py",
+      "target": "class:wrappers.py:RewardScaler",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "file:network.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "file:wrappers.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "function:visualize.py:load_actor",
+      "target": "class:network.py:DiffusionMLPActor",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "function:visualize.py:build_eval_env",
+      "target": "class:wrappers.py:DiffusionStateNormalizer",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "function:visualize.py:evaluate_actor",
+      "target": "function:visualize.py:run_denoising_chain",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "function:visualize.py:compare_bc_vs_dppo",
+      "target": "function:visualize.py:load_actor",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "function:visualize.py:compare_bc_vs_dppo",
+      "target": "function:visualize.py:build_eval_env",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "function:visualize.py:compare_bc_vs_dppo",
+      "target": "function:visualize.py:evaluate_actor",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "function:visualize.py:render_video",
+      "target": "function:visualize.py:load_actor",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "function:visualize.py:render_video",
+      "target": "function:visualize.py:build_eval_env",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "function:visualize.py:render_video",
+      "target": "function:visualize.py:evaluate_actor",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "class:network.py:DiffusionMLPActor",
+      "target": "class:network.py:SinusoidalPosEmb",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "file:network.py",
+      "target": "class:network.py:SinusoidalPosEmb",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:network.py",
+      "target": "class:network.py:DiffusionMLPActor",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:network.py",
+      "target": "class:network.py:ValueCritic",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "function:visualize.py:build_eval_env",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "function:visualize.py:load_actor",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "function:visualize.py:run_denoising_chain",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "function:visualize.py:evaluate_actor",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "function:visualize.py:compare_bc_vs_dppo",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:visualize.py",
+      "target": "function:visualize.py:render_video",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:wrappers.py",
+      "target": "class:wrappers.py:ActionChunkingWrapper",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:wrappers.py",
+      "target": "class:wrappers.py:DiffusionStateNormalizer",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:wrappers.py",
+      "target": "class:wrappers.py:RewardScaler",
+      "type": "exports",
+      "weight": 0.8
+    }
+  ]
+}

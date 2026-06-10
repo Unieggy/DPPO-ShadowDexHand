@@ -83,6 +83,19 @@ The standard comparison used in the DPPO paper is:
 | `actor_best.pt` | When eval success rate improves | Best policy by success rate |
 | `actor_final.pt` | End of 500 iterations | Final policy weights |
 
+## Interactive Codebase Graph
+
+An interactive knowledge graph of this codebase is included at `.understand-anything/knowledge-graph.json`. To explore it locally:
+
+```bash
+cd ~/.claude/plugins/cache/understand-anything/understand-anything/2.7.6/packages/dashboard
+GRAPH_DIR=/path/to/this/repo npx vite
+```
+
+Then open the token URL printed in the terminal.
+
+> Requires [Claude Code](https://claude.ai/code) with the `understand-anything` plugin installed: `/plugin install understand-anything`
+
 ## References
 * Original DPPO implementation and mathematical framework: https://github.com/irom-princeton/dppo
 * Adroit Hand demonstrations: Rajeswaran et al., "Learning Complex Dexterous Manipulation with Deep Reinforcement Learning and Demonstrations" (2018)

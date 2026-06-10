@@ -1,0 +1,18 @@
+{
+  "projectRoot": "/Users/cheng/Desktop/Projects/vscodebased/dppodex",
+  "files": [
+    {"path": ".DS_Store", "language": "unknown", "fileCategory": "code"},
+    {"path": ".understand-anything/.understandignore", "language": "unknown", "fileCategory": "code"},
+    {"path": "checkpoints/.DS_Store", "language": "unknown", "fileCategory": "code"},
+    {"path": "checkpoints/actor_bc.pt", "language": "pt", "fileCategory": "code"},
+    {"path": "checkpoints/actor_best.pt", "language": "pt", "fileCategory": "code"},
+    {"path": "download_expert_data.py", "language": "python", "fileCategory": "code"},
+    {"path": "dppo_math.py", "language": "python", "fileCategory": "code"},
+    {"path": "main.ipynb", "language": "ipynb", "fileCategory": "code"},
+    {"path": "network.py", "language": "python", "fileCategory": "code"},
+    {"path": "README.md", "language": "markdown", "fileCategory": "docs"},
+    {"path": "train.py", "language": "python", "fileCategory": "code"},
+    {"path": "visualize.py", "language": "python", "fileCategory": "code"},
+    {"path": "wrappers.py", "language": "python", "fileCategory": "code"}
+  ]
+}

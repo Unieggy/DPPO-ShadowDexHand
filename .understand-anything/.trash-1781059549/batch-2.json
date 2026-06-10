@@ -1,0 +1,339 @@
+{
+  "nodes": [
+    {
+      "id": "file:.DS_Store",
+      "type": "file",
+      "label": ".DS_Store",
+      "path": ".DS_Store",
+      "language": "unknown",
+      "size": 2,
+      "summary": "macOS Finder metadata file (binary, auto-generated)."
+    },
+    {
+      "id": "file:.understand-anything/.understandignore",
+      "type": "file",
+      "label": ".understandignore",
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "size": 17,
+      "summary": "Configuration file specifying patterns for files and directories to exclude from understand-anything analysis. Uses gitignore-style glob syntax. Currently all exclusion patterns are commented out."
+    },
+    {
+      "id": "file:checkpoints/.DS_Store",
+      "type": "file",
+      "label": "checkpoints/.DS_Store",
+      "path": "checkpoints/.DS_Store",
+      "language": "unknown",
+      "size": 0,
+      "summary": "macOS Finder metadata file for the checkpoints directory (binary, auto-generated)."
+    },
+    {
+      "id": "file:checkpoints/actor_bc.pt",
+      "type": "file",
+      "label": "actor_bc.pt",
+      "path": "checkpoints/actor_bc.pt",
+      "language": "pt",
+      "size": 6705,
+      "summary": "PyTorch checkpoint file containing the actor model weights after behavior cloning (BC) pretraining. Serves as the BC-only baseline for comparison with DPPO-fine-tuned policies."
+    },
+    {
+      "id": "file:checkpoints/actor_best.pt",
+      "type": "file",
+      "label": "actor_best.pt",
+      "path": "checkpoints/actor_best.pt",
+      "language": "pt",
+      "size": 6719,
+      "summary": "PyTorch checkpoint file containing the best actor model weights achieved during DPPO fine-tuning, saved when evaluation success rate improves over the previous best."
+    },
+    {
+      "id": "file:download_expert_data.py",
+      "type": "file",
+      "label": "download_expert_data.py",
+      "path": "download_expert_data.py",
+      "language": "python",
+      "size": 98,
+      "summary": "Downloads the D4RL/pen/expert-v2 human demonstration dataset from Minari, filters successful episodes, constructs sliding-window action chunks of size 4, batch-normalizes observations using mean/std plus tanh squashing to [-1,1], and saves the result as expert_data.pt with keys {states, action_chunks, obs_mean, obs_std}."
+    },
+    {
+      "id": "function:download_expert_data.py::download_and_convert",
+      "type": "function",
+      "label": "download_and_convert",
+      "path": "download_expert_data.py",
+      "language": "python",
+      "startLine": 16,
+      "endLine": 94,
+      "summary": "Main function that loads or downloads the Minari D4RL/pen/expert-v2 dataset, iterates through episodes to filter successful ones (checking 'success' or 'goal_achieved' info keys), constructs sliding-window action chunks of CHUNK_SIZE=4, applies batch normalization (mean/std + tanh) to observations, converts to PyTorch tensors, and saves the processed data to expert_data.pt. Falls back to using all episodes if no success info is found."
+    },
+    {
+      "id": "file:dppo_math.py",
+      "type": "file",
+      "label": "dppo_math.py",
+      "path": "dppo_math.py",
+      "language": "python",
+      "size": 139,
+      "summary": "Mathematical utilities for DPPO training. Contains the DashcamBuffer class for storing diffusion micro-step transitions during rollouts, Gaussian log-probability computation for diffusion step transitions, the PPO clipped surrogate objective function, and a helper to extract DDPM log-variance from the scheduler's beta schedule."
+    },
+    {
+      "id": "class:dppo_math.py::DashcamBuffer",
+      "type": "class",
+      "label": "DashcamBuffer",
+      "path": "dppo_math.py",
+      "language": "python",
+      "startLine": 4,
+      "endLine": 67,
+      "methods": ["__init__", "add_trajectory", "get_all", "clear"],
+      "summary": "Preallocated replay buffer that stores the internal denoising micro-steps from the last K' diffusion steps alongside environment rewards. Stores states, noisy actions, committed noises, k-step indices, log-probabilities, advantages, and returns. The add_trajectory method broadcasts a single-step environment advantage/return across all K' denoising micro-steps. The get_all method returns the full buffer with normalized advantages for PPO updates."
+    },
+    {
+      "id": "function:dppo_math.py::calculate_gaussian_log_prob",
+      "type": "function",
+      "label": "calculate_gaussian_log_prob",
+      "path": "dppo_math.py",
+      "language": "python",
+      "startLine": 69,
+      "endLine": 96,
+      "summary": "Computes the Gaussian log-likelihood of a diffusion step transition in noise-prediction space. Uses the formula log P(x) = -0.5 * ((x-mu)^2/var + log(var) + log(2*pi)), where the squared error between predicted and target noise is scaled by the inverse variance, then averaged over chunk_size and act_dim dimensions to produce a per-batch scalar log probability."
+    },
+    {
+      "id": "function:dppo_math.py::compute_ppo_objective",
+      "type": "function",
+      "label": "compute_ppo_objective",
+      "path": "dppo_math.py",
+      "language": "python",
+      "startLine": 98,
+      "endLine": 127,
+      "summary": "Implements the standard PPO clipped surrogate objective. Computes the probability ratio exp(new_log_probs - old_log_probs), creates both unclipped and clipped (epsilon=0.2) surrogate objectives, and returns the negative of the minimum as the loss to maximize the policy improvement lower bound."
+    },
+    {
+      "id": "function:dppo_math.py::get_ddpm_log_variance",
+      "type": "function",
+      "label": "get_ddpm_log_variance",
+      "path": "dppo_math.py",
+      "language": "python",
+      "startLine": 129,
+      "endLine": 139,
+      "summary": "Extracts the log-variance log(beta_k) from the DDPM scheduler's beta noise schedule for given diffusion steps k_steps. Returns shape [batch, 1, 1] for broadcasting over chunk_size and act_dim dimensions. Uses the DDPM posterior variance approximation sigma_k^2 = beta_k."
+    },
+    {
+      "id": "file:main.ipynb",
+      "type": "file",
+      "label": "main.ipynb",
+      "path": "main.ipynb",
+      "language": "ipynb",
+      "size": 47,
+      "summary": "Jupyter notebook (designed for Google Colab) that orchestrates the full DPPO training pipeline. Cell 1 mounts Google Drive, copies project files, and installs dependencies (diffusers, gymnasium, gymnasium-robotics, mujoco, minari). Cell 2 defines a main() function that: loads expert normalization stats, creates the Adroit pen environment with wrappers, initializes actor/critic networks and DDPM scheduler, runs BC pretraining (50 epochs, skipped if actor_bc.pt exists), optionally resumes from DPPO checkpoints, then runs DPPO fine-tuning for 500 iterations with periodic evaluation and checkpointing."
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "label": "README.md",
+      "path": "README.md",
+      "language": "markdown",
+      "size": 88,
+      "summary": "Project documentation for the DPPO dexterous manipulation implementation. Covers the architecture (AdroitHandPen-v1 environment, 45-dim observations, 24-DoF actions, action chunking with Tp=4), the five-component project structure (expert data download, environment wrappers, neural network backbones, DPPO math/buffer, training loops), training order (download data, BC pretraining, DPPO fine-tuning, visualization), output file descriptions, and references to the original DPPO paper and Adroit demonstrations."
+    },
+    {
+      "id": "file:train.py",
+      "type": "file",
+      "label": "train.py",
+      "path": "train.py",
+      "language": "python",
+      "size": 242,
+      "summary": "Main training module containing three core functions for the DPPO pipeline: behavior cloning pretraining (supervised denoising on expert data), deterministic policy evaluation (K-step denoising rollout to measure success rate), and DPPO fine-tuning (environment rollouts with frozen old policy, advantage estimation via critic bootstrapping, and PPO updates on the last K' denoising steps). Imports mathematical utilities from dppo_math.py."
+    },
+    {
+      "id": "function:train.py::train_behavior_cloning",
+      "type": "function",
+      "label": "train_behavior_cloning",
+      "path": "train.py",
+      "language": "python",
+      "startLine": 8,
+      "endLine": 65,
+      "summary": "Supervised pretraining loop that trains the diffusion actor to predict noise added to expert demonstrations. For each batch: samples random diffusion timesteps k, corrupts expert action chunks with Gaussian noise via scheduler.add_noise(), forward-passes the noisy actions through the actor, and minimizes MSE loss between predicted and actual noise. Uses AdamW optimizer with lr=1e-4. Logs loss every 10 epochs."
+    },
+    {
+      "id": "function:train.py::evaluate_policy",
+      "type": "function",
+      "label": "evaluate_policy",
+      "path": "train.py",
+      "language": "python",
+      "startLine": 67,
+      "endLine": 103,
+      "summary": "Runs deterministic evaluation episodes with no exploration noise. For each episode: starts from pure noise and runs the full K-step reverse denoising chain using the actor's mean noise prediction, executes the denoised action in the environment, and tracks success via the info dict's 'success' key. Returns the fraction of successful episodes out of num_episodes."
+    },
+    {
+      "id": "function:train.py::train_dppo",
+      "type": "function",
+      "label": "train_dppo",
+      "path": "train.py",
+      "language": "python",
+      "startLine": 106,
+      "endLine": 240,
+      "summary": "Core DPPO reinforcement learning loop running 500 iterations. Each iteration: (1) Rollout phase -- collects num_env_steps transitions using the frozen old_actor, runs full K-step denoising with stochastic committed noise sampling (mean + sigma*z), records the last K' micro-steps in the DashcamBuffer with bootstrapped advantage A_t = r_t + gamma*V(s') - V(s). (2) PPO update phase -- runs 2 epochs over the buffer, updates critic via MSE on returns, updates active_actor via the clipped PPO objective computed on Gaussian log-probs in noise-prediction space, with gradient clipping at 0.5. Syncs old_actor weights after each iteration. Saves checkpoints every 50 iterations, evaluates every 20 iterations, and saves actor_best.pt when success rate improves."
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:download_expert_data.py",
+      "target": "function:download_expert_data.py::download_and_convert",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:dppo_math.py",
+      "target": "class:dppo_math.py::DashcamBuffer",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:dppo_math.py",
+      "target": "function:dppo_math.py::calculate_gaussian_log_prob",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:dppo_math.py",
+      "target": "function:dppo_math.py::compute_ppo_objective",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:dppo_math.py",
+      "target": "function:dppo_math.py::get_ddpm_log_variance",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:train.py",
+      "target": "function:train.py::train_behavior_cloning",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:train.py",
+      "target": "function:train.py::evaluate_policy",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:train.py",
+      "target": "function:train.py::train_dppo",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:train.py",
+      "target": "file:dppo_math.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "function:train.py::train_dppo",
+      "target": "function:dppo_math.py::get_ddpm_log_variance",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "function:train.py::train_dppo",
+      "target": "function:dppo_math.py::calculate_gaussian_log_prob",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "function:train.py::train_dppo",
+      "target": "function:dppo_math.py::compute_ppo_objective",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "function:train.py::train_dppo",
+      "target": "function:train.py::evaluate_policy",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "file:download_expert_data.py",
+      "target": "function:download_expert_data.py::download_and_convert",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:dppo_math.py",
+      "target": "class:dppo_math.py::DashcamBuffer",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:dppo_math.py",
+      "target": "function:dppo_math.py::calculate_gaussian_log_prob",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:dppo_math.py",
+      "target": "function:dppo_math.py::compute_ppo_objective",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:dppo_math.py",
+      "target": "function:dppo_math.py::get_ddpm_log_variance",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:train.py",
+      "target": "function:train.py::train_behavior_cloning",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:train.py",
+      "target": "function:train.py::evaluate_policy",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:train.py",
+      "target": "function:train.py::train_dppo",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:download_expert_data.py",
+      "type": "documents",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:dppo_math.py",
+      "type": "documents",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:train.py",
+      "type": "documents",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:main.ipynb",
+      "type": "documents",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:checkpoints/actor_bc.pt",
+      "type": "documents",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:checkpoints/actor_best.pt",
+      "type": "documents",
+      "weight": 0.5
+    }
+  ]
+}

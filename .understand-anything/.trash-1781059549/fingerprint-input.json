@@ -1,0 +1,5 @@
+{
+  "projectRoot": "/Users/cheng/Desktop/Projects/vscodebased/dppodex",
+  "sourceFilePaths": [".DS_Store", ".understand-anything/.understandignore", "checkpoints/.DS_Store", "checkpoints/actor_bc.pt", "checkpoints/actor_best.pt", "download_expert_data.py", "dppo_math.py", "main.ipynb", "network.py", "README.md", "train.py", "visualize.py", "wrappers.py"],
+  "gitCommitHash": "3659215b684fcb891e74cfde1083899f87953afc"
+}

@@ -1,0 +1,27 @@
+{
+  "issues": [],
+  "warnings": [
+    "Node 'file:.DS_Store' has no edges (orphan)",
+    "Node 'file:.understand-anything/.understandignore' has no edges (orphan)",
+    "Node 'file:checkpoints/.DS_Store' has no edges (orphan)"
+  ],
+  "stats": {
+    "totalNodes": 33,
+    "totalEdges": 63,
+    "totalLayers": 6,
+    "tourSteps": 7,
+    "nodeTypes": {
+      "file": 12,
+      "class": 7,
+      "function": 13,
+      "document": 1
+    },
+    "edgeTypes": {
+      "contains": 20,
+      "imports": 3,
+      "calls": 14,
+      "exports": 20,
+      "documents": 6
+    }
+  }
+}

@@ -1,0 +1,420 @@
+{
+  "summary": {
+    "totalNodes": 13,
+    "totalImportEdges": 3,
+    "totalAllEdges": 9,
+    "directoryCount": 3
+  },
+  "directoryGroups": {
+    ".": [
+      "file:network.py",
+      "file:visualize.py",
+      "file:wrappers.py",
+      "file:.DS_Store",
+      "file:download_expert_data.py",
+      "file:dppo_math.py",
+      "file:main.ipynb",
+      "document:README.md",
+      "file:train.py"
+    ],
+    ".understand-anything": [
+      "file:.understand-anything/.understandignore"
+    ],
+    "checkpoints": [
+      "file:checkpoints/.DS_Store",
+      "file:checkpoints/actor_bc.pt",
+      "file:checkpoints/actor_best.pt"
+    ]
+  },
+  "adjacency": {
+    "file:network.py": {
+      "inDegree": 1,
+      "outDegree": 0,
+      "importedBy": [
+        "file:visualize.py"
+      ],
+      "imports": []
+    },
+    "file:visualize.py": {
+      "inDegree": 0,
+      "outDegree": 2,
+      "importedBy": [],
+      "imports": [
+        "file:network.py",
+        "file:wrappers.py"
+      ]
+    },
+    "file:wrappers.py": {
+      "inDegree": 1,
+      "outDegree": 0,
+      "importedBy": [
+        "file:visualize.py"
+      ],
+      "imports": []
+    },
+    "file:.DS_Store": {
+      "inDegree": 0,
+      "outDegree": 0,
+      "importedBy": [],
+      "imports": []
+    },
+    "file:.understand-anything/.understandignore": {
+      "inDegree": 0,
+      "outDegree": 0,
+      "importedBy": [],
+      "imports": []
+    },
+    "file:checkpoints/.DS_Store": {
+      "inDegree": 0,
+      "outDegree": 0,
+      "importedBy": [],
+      "imports": []
+    },
+    "file:checkpoints/actor_bc.pt": {
+      "inDegree": 0,
+      "outDegree": 0,
+      "importedBy": [],
+      "imports": []
+    },
+    "file:checkpoints/actor_best.pt": {
+      "inDegree": 0,
+      "outDegree": 0,
+      "importedBy": [],
+      "imports": []
+    },
+    "file:download_expert_data.py": {
+      "inDegree": 0,
+      "outDegree": 0,
+      "importedBy": [],
+      "imports": []
+    },
+    "file:dppo_math.py": {
+      "inDegree": 1,
+      "outDegree": 0,
+      "importedBy": [
+        "file:train.py"
+      ],
+      "imports": []
+    },
+    "file:main.ipynb": {
+      "inDegree": 0,
+      "outDegree": 0,
+      "importedBy": [],
+      "imports": []
+    },
+    "document:README.md": {
+      "inDegree": 0,
+      "outDegree": 0,
+      "importedBy": [],
+      "imports": []
+    },
+    "file:train.py": {
+      "inDegree": 0,
+      "outDegree": 1,
+      "importedBy": [],
+      "imports": [
+        "file:dppo_math.py"
+      ]
+    }
+  },
+  "structuralRoles": {
+    "file:network.py": "dependency",
+    "file:visualize.py": "consumer",
+    "file:wrappers.py": "dependency",
+    "file:.DS_Store": "isolated",
+    "file:.understand-anything/.understandignore": "isolated",
+    "file:checkpoints/.DS_Store": "isolated",
+    "file:checkpoints/actor_bc.pt": "isolated",
+    "file:checkpoints/actor_best.pt": "isolated",
+    "file:download_expert_data.py": "isolated",
+    "file:dppo_math.py": "dependency",
+    "file:main.ipynb": "isolated",
+    "document:README.md": "isolated",
+    "file:train.py": "consumer"
+  },
+  "patternMatches": {
+    "file:network.py": {
+      "bestMatch": "neural-networks",
+      "bestLabel": "Neural Networks",
+      "allMatches": [
+        {
+          "layer": "neural-networks",
+          "label": "Neural Networks",
+          "tagScore": 4,
+          "nameScore": 1,
+          "totalScore": 5
+        }
+      ]
+    },
+    "file:visualize.py": {
+      "bestMatch": "evaluation",
+      "bestLabel": "Evaluation & Visualization",
+      "allMatches": [
+        {
+          "layer": "evaluation",
+          "label": "Evaluation & Visualization",
+          "tagScore": 4,
+          "nameScore": 1,
+          "totalScore": 5
+        }
+      ]
+    },
+    "file:wrappers.py": {
+      "bestMatch": "environment",
+      "bestLabel": "Environment",
+      "allMatches": [
+        {
+          "layer": "environment",
+          "label": "Environment",
+          "tagScore": 5,
+          "nameScore": 1,
+          "totalScore": 6
+        }
+      ]
+    },
+    "file:.DS_Store": {
+      "bestMatch": "project-support",
+      "bestLabel": "Project Support",
+      "allMatches": [
+        {
+          "layer": "project-support",
+          "label": "Project Support",
+          "tagScore": 1,
+          "nameScore": 1,
+          "totalScore": 2
+        }
+      ]
+    },
+    "file:.understand-anything/.understandignore": {
+      "bestMatch": "project-support",
+      "bestLabel": "Project Support",
+      "allMatches": [
+        {
+          "layer": "project-support",
+          "label": "Project Support",
+          "tagScore": 1,
+          "nameScore": 1,
+          "totalScore": 2
+        }
+      ]
+    },
+    "file:checkpoints/.DS_Store": {
+      "bestMatch": "project-support",
+      "bestLabel": "Project Support",
+      "allMatches": [
+        {
+          "layer": "project-support",
+          "label": "Project Support",
+          "tagScore": 1,
+          "nameScore": 1,
+          "totalScore": 2
+        }
+      ]
+    },
+    "file:checkpoints/actor_bc.pt": {
+      "bestMatch": "project-support",
+      "bestLabel": "Project Support",
+      "allMatches": [
+        {
+          "layer": "project-support",
+          "label": "Project Support",
+          "tagScore": 2,
+          "nameScore": 1,
+          "totalScore": 3
+        },
+        {
+          "layer": "neural-networks",
+          "label": "Neural Networks",
+          "tagScore": 0,
+          "nameScore": 1,
+          "totalScore": 1
+        }
+      ]
+    },
+    "file:checkpoints/actor_best.pt": {
+      "bestMatch": "project-support",
+      "bestLabel": "Project Support",
+      "allMatches": [
+        {
+          "layer": "project-support",
+          "label": "Project Support",
+          "tagScore": 2,
+          "nameScore": 1,
+          "totalScore": 3
+        },
+        {
+          "layer": "neural-networks",
+          "label": "Neural Networks",
+          "tagScore": 0,
+          "nameScore": 1,
+          "totalScore": 1
+        }
+      ]
+    },
+    "file:download_expert_data.py": {
+      "bestMatch": "data-pipeline",
+      "bestLabel": "Data Pipeline",
+      "allMatches": [
+        {
+          "layer": "data-pipeline",
+          "label": "Data Pipeline",
+          "tagScore": 3,
+          "nameScore": 2,
+          "totalScore": 5
+        }
+      ]
+    },
+    "file:dppo_math.py": {
+      "bestMatch": "training-core",
+      "bestLabel": "Training Core",
+      "allMatches": [
+        {
+          "layer": "training-core",
+          "label": "Training Core",
+          "tagScore": 3,
+          "nameScore": 1,
+          "totalScore": 4
+        }
+      ]
+    },
+    "file:main.ipynb": {
+      "bestMatch": "project-support",
+      "bestLabel": "Project Support",
+      "allMatches": [
+        {
+          "layer": "project-support",
+          "label": "Project Support",
+          "tagScore": 2,
+          "nameScore": 1,
+          "totalScore": 3
+        }
+      ]
+    },
+    "document:README.md": {
+      "bestMatch": "project-support",
+      "bestLabel": "Project Support",
+      "allMatches": [
+        {
+          "layer": "project-support",
+          "label": "Project Support",
+          "tagScore": 2,
+          "nameScore": 1,
+          "totalScore": 3
+        }
+      ]
+    },
+    "file:train.py": {
+      "bestMatch": "training-core",
+      "bestLabel": "Training Core",
+      "allMatches": [
+        {
+          "layer": "training-core",
+          "label": "Training Core",
+          "tagScore": 4,
+          "nameScore": 1,
+          "totalScore": 5
+        }
+      ]
+    }
+  },
+  "documentedBy": {
+    "file:download_expert_data.py": [
+      "document:README.md"
+    ],
+    "file:dppo_math.py": [
+      "document:README.md"
+    ],
+    "file:train.py": [
+      "document:README.md"
+    ],
+    "file:main.ipynb": [
+      "document:README.md"
+    ],
+    "file:checkpoints/actor_bc.pt": [
+      "document:README.md"
+    ],
+    "file:checkpoints/actor_best.pt": [
+      "document:README.md"
+    ]
+  },
+  "suggestedAssignments": {
+    "file:network.py": {
+      "layer": "neural-networks",
+      "label": "Neural Networks",
+      "structuralRole": "dependency",
+      "directory": "."
+    },
+    "file:visualize.py": {
+      "layer": "evaluation",
+      "label": "Evaluation & Visualization",
+      "structuralRole": "consumer",
+      "directory": "."
+    },
+    "file:wrappers.py": {
+      "layer": "environment",
+      "label": "Environment",
+      "structuralRole": "dependency",
+      "directory": "."
+    },
+    "file:.DS_Store": {
+      "layer": "project-support",
+      "label": "Project Support",
+      "structuralRole": "isolated",
+      "directory": "."
+    },
+    "file:.understand-anything/.understandignore": {
+      "layer": "project-support",
+      "label": "Project Support",
+      "structuralRole": "isolated",
+      "directory": ".understand-anything"
+    },
+    "file:checkpoints/.DS_Store": {
+      "layer": "project-support",
+      "label": "Project Support",
+      "structuralRole": "isolated",
+      "directory": "checkpoints"
+    },
+    "file:checkpoints/actor_bc.pt": {
+      "layer": "project-support",
+      "label": "Project Support",
+      "structuralRole": "isolated",
+      "directory": "checkpoints"
+    },
+    "file:checkpoints/actor_best.pt": {
+      "layer": "project-support",
+      "label": "Project Support",
+      "structuralRole": "isolated",
+      "directory": "checkpoints"
+    },
+    "file:download_expert_data.py": {
+      "layer": "data-pipeline",
+      "label": "Data Pipeline",
+      "structuralRole": "isolated",
+      "directory": "."
+    },
+    "file:dppo_math.py": {
+      "layer": "training-core",
+      "label": "Training Core",
+      "structuralRole": "dependency",
+      "directory": "."
+    },
+    "file:main.ipynb": {
+      "layer": "project-support",
+      "label": "Project Support",
+      "structuralRole": "isolated",
+      "directory": "."
+    },
+    "document:README.md": {
+      "layer": "project-support",
+      "label": "Project Support",
+      "structuralRole": "isolated",
+      "directory": "."
+    },
+    "file:train.py": {
+      "layer": "training-core",
+      "label": "Training Core",
+      "structuralRole": "consumer",
+      "directory": "."
+    }
+  }
+}

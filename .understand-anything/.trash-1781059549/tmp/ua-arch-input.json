@@ -1,0 +1,33 @@
+{
+  "fileNodes": [
+    {"id": "file:network.py", "type": "file", "name": "network.py", "filePath": "network.py", "summary": "Neural network architectures: SinusoidalPosEmb, DiffusionMLPActor, ValueCritic", "tags": ["neural-network", "diffusion-model", "actor-critic", "pytorch", "policy"]},
+    {"id": "file:visualize.py", "type": "file", "name": "visualize.py", "filePath": "visualize.py", "summary": "Visualization and evaluation utilities for comparing BC and DPPO checkpoints", "tags": ["evaluation", "visualization", "diffusion-inference", "video-recording", "comparison"]},
+    {"id": "file:wrappers.py", "type": "file", "name": "wrappers.py", "filePath": "wrappers.py", "summary": "Gymnasium environment wrappers for diffusion policy optimization", "tags": ["environment-wrapper", "gymnasium", "action-chunking", "normalization", "reward-scaling"]},
+    {"id": "file:.DS_Store", "type": "file", "name": ".DS_Store", "filePath": ".DS_Store", "summary": "macOS Finder metadata file (binary, auto-generated)", "tags": ["metadata"]},
+    {"id": "file:.understand-anything/.understandignore", "type": "file", "name": ".understandignore", "filePath": ".understand-anything/.understandignore", "summary": "Configuration for understand-anything analysis exclusions", "tags": ["configuration"]},
+    {"id": "file:checkpoints/.DS_Store", "type": "file", "name": "checkpoints/.DS_Store", "filePath": "checkpoints/.DS_Store", "summary": "macOS Finder metadata file (binary, auto-generated)", "tags": ["metadata"]},
+    {"id": "file:checkpoints/actor_bc.pt", "type": "file", "name": "actor_bc.pt", "filePath": "checkpoints/actor_bc.pt", "summary": "PyTorch checkpoint: actor weights after BC pretraining", "tags": ["checkpoint", "model-weights"]},
+    {"id": "file:checkpoints/actor_best.pt", "type": "file", "name": "actor_best.pt", "filePath": "checkpoints/actor_best.pt", "summary": "PyTorch checkpoint: best actor weights from DPPO fine-tuning", "tags": ["checkpoint", "model-weights"]},
+    {"id": "file:download_expert_data.py", "type": "file", "name": "download_expert_data.py", "filePath": "download_expert_data.py", "summary": "Downloads Minari expert demonstrations and converts to training format", "tags": ["data-pipeline", "expert-data", "preprocessing"]},
+    {"id": "file:dppo_math.py", "type": "file", "name": "dppo_math.py", "filePath": "dppo_math.py", "summary": "Mathematical utilities for DPPO: Gaussian log-prob, PPO objective, DDPM log-variance, DashcamBuffer", "tags": ["math", "ppo", "diffusion", "buffer"]},
+    {"id": "file:main.ipynb", "type": "file", "name": "main.ipynb", "filePath": "main.ipynb", "summary": "Jupyter notebook orchestrating the full DPPO training pipeline", "tags": ["notebook", "entry-point", "pipeline"]},
+    {"id": "document:README.md", "type": "document", "name": "README.md", "filePath": "README.md", "summary": "Project documentation for the DPPO implementation", "tags": ["documentation", "entry-point", "overview"]},
+    {"id": "file:train.py", "type": "file", "name": "train.py", "filePath": "train.py", "summary": "Main training module: BC pretraining, policy evaluation, and DPPO fine-tuning", "tags": ["training", "behavior-cloning", "dppo", "ppo"]}
+  ],
+  "importEdges": [
+    {"source": "file:visualize.py", "target": "file:network.py", "type": "imports"},
+    {"source": "file:visualize.py", "target": "file:wrappers.py", "type": "imports"},
+    {"source": "file:train.py", "target": "file:dppo_math.py", "type": "imports"}
+  ],
+  "allEdges": [
+    {"source": "file:visualize.py", "target": "file:network.py", "type": "imports"},
+    {"source": "file:visualize.py", "target": "file:wrappers.py", "type": "imports"},
+    {"source": "file:train.py", "target": "file:dppo_math.py", "type": "imports"},
+    {"source": "document:README.md", "target": "file:download_expert_data.py", "type": "documents"},
+    {"source": "document:README.md", "target": "file:dppo_math.py", "type": "documents"},
+    {"source": "document:README.md", "target": "file:train.py", "type": "documents"},
+    {"source": "document:README.md", "target": "file:main.ipynb", "type": "documents"},
+    {"source": "document:README.md", "target": "file:checkpoints/actor_bc.pt", "type": "documents"},
+    {"source": "document:README.md", "target": "file:checkpoints/actor_best.pt", "type": "documents"}
+  ]
+}

@@ -1,0 +1,956 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 3,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "network.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 144,
+      "nonEmptyLines": 119,
+      "classes": [
+        {
+          "name": "SinusoidalPosEmb",
+          "startLine": 5,
+          "endLine": 58,
+          "methods": [
+            "__init__",
+            "forward"
+          ],
+          "properties": []
+        },
+        {
+          "name": "DiffusionMLPActor",
+          "startLine": 60,
+          "endLine": 124,
+          "methods": [
+            "__init__",
+            "forward"
+          ],
+          "properties": []
+        },
+        {
+          "name": "ValueCritic",
+          "startLine": 126,
+          "endLine": 144,
+          "methods": [
+            "__init__",
+            "forward"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "SinusoidalPosEmb",
+          "line": 5,
+          "isDefault": false
+        },
+        {
+          "name": "DiffusionMLPActor",
+          "line": 60,
+          "isDefault": false
+        },
+        {
+          "name": "ValueCritic",
+          "line": 126,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 12
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 12
+        },
+        {
+          "caller": "forward",
+          "callee": "math.log",
+          "lineNumber": 42
+        },
+        {
+          "caller": "forward",
+          "callee": "torch.exp",
+          "lineNumber": 43
+        },
+        {
+          "caller": "forward",
+          "callee": "torch.arange",
+          "lineNumber": 43
+        },
+        {
+          "caller": "forward",
+          "callee": "torch.cat",
+          "lineNumber": 57
+        },
+        {
+          "caller": "forward",
+          "callee": "emb.sin",
+          "lineNumber": 57
+        },
+        {
+          "caller": "forward",
+          "callee": "emb.cos",
+          "lineNumber": 57
+        },
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 65
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 65
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Sequential",
+          "lineNumber": 73
+        },
+        {
+          "caller": "__init__",
+          "callee": "SinusoidalPosEmb",
+          "lineNumber": 74
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Linear",
+          "lineNumber": 75
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Mish",
+          "lineNumber": 76
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Linear",
+          "lineNumber": 77
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Sequential",
+          "lineNumber": 85
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Linear",
+          "lineNumber": 86
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Mish",
+          "lineNumber": 87
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Linear",
+          "lineNumber": 88
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Mish",
+          "lineNumber": 89
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Linear",
+          "lineNumber": 90
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Mish",
+          "lineNumber": 91
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Linear",
+          "lineNumber": 92
+        },
+        {
+          "caller": "forward",
+          "callee": "noisty_action_chunk.view",
+          "lineNumber": 104
+        },
+        {
+          "caller": "forward",
+          "callee": "self.time_mlp",
+          "lineNumber": 110
+        },
+        {
+          "caller": "forward",
+          "callee": "torch.cat",
+          "lineNumber": 114
+        },
+        {
+          "caller": "forward",
+          "callee": "self.net",
+          "lineNumber": 118
+        },
+        {
+          "caller": "forward",
+          "callee": "predicted_flat_noise.view",
+          "lineNumber": 122
+        },
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 132
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 132
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Sequential",
+          "lineNumber": 135
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Linear",
+          "lineNumber": 136
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Tanh",
+          "lineNumber": 137
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Linear",
+          "lineNumber": 138
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Tanh",
+          "lineNumber": 139
+        },
+        {
+          "caller": "__init__",
+          "callee": "nn.Linear",
+          "lineNumber": 140
+        },
+        {
+          "caller": "forward",
+          "callee": "self.net",
+          "lineNumber": 144
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 0,
+        "classCount": 3
+      }
+    },
+    {
+      "path": "visualize.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 175,
+      "nonEmptyLines": 144,
+      "functions": [
+        {
+          "name": "build_eval_env",
+          "startLine": 26,
+          "endLine": 38,
+          "params": []
+        },
+        {
+          "name": "load_actor",
+          "startLine": 41,
+          "endLine": 45,
+          "params": [
+            "checkpoint_path"
+          ]
+        },
+        {
+          "name": "run_denoising_chain",
+          "startLine": 48,
+          "endLine": 59,
+          "params": [
+            "actor",
+            "scheduler",
+            "obs_tensor"
+          ]
+        },
+        {
+          "name": "evaluate_actor",
+          "startLine": 62,
+          "endLine": 89,
+          "params": [
+            "actor",
+            "scheduler",
+            "env",
+            "num_episodes",
+            "record_frames"
+          ]
+        },
+        {
+          "name": "compare_bc_vs_dppo",
+          "startLine": 92,
+          "endLine": 144,
+          "params": []
+        },
+        {
+          "name": "render_video",
+          "startLine": 147,
+          "endLine": 170,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "build_eval_env",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "load_actor",
+          "line": 41,
+          "isDefault": false
+        },
+        {
+          "name": "run_denoising_chain",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "evaluate_actor",
+          "line": 62,
+          "isDefault": false
+        },
+        {
+          "name": "compare_bc_vs_dppo",
+          "line": 92,
+          "isDefault": false
+        },
+        {
+          "name": "render_video",
+          "line": 147,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "build_eval_env",
+          "callee": "os.path.exists",
+          "lineNumber": 29
+        },
+        {
+          "caller": "build_eval_env",
+          "callee": "torch.load",
+          "lineNumber": 30
+        },
+        {
+          "caller": "build_eval_env",
+          "callee": "_stats[\"obs_mean\"].numpy",
+          "lineNumber": 32
+        },
+        {
+          "caller": "build_eval_env",
+          "callee": "_stats[\"obs_std\"].numpy",
+          "lineNumber": 33
+        },
+        {
+          "caller": "build_eval_env",
+          "callee": "gym.make",
+          "lineNumber": 34
+        },
+        {
+          "caller": "build_eval_env",
+          "callee": "isinstance",
+          "lineNumber": 35
+        },
+        {
+          "caller": "build_eval_env",
+          "callee": "gym.wrappers.FlattenObservation",
+          "lineNumber": 36
+        },
+        {
+          "caller": "build_eval_env",
+          "callee": "DiffusionStateNormalizer",
+          "lineNumber": 37
+        },
+        {
+          "caller": "load_actor",
+          "callee": "DiffusionMLPActor(OBS_DIM, ACT_DIM, CHUNK_SIZE, HIDDEN_DIM).to",
+          "lineNumber": 42
+        },
+        {
+          "caller": "load_actor",
+          "callee": "DiffusionMLPActor",
+          "lineNumber": 42
+        },
+        {
+          "caller": "load_actor",
+          "callee": "actor.load_state_dict",
+          "lineNumber": 43
+        },
+        {
+          "caller": "load_actor",
+          "callee": "torch.load",
+          "lineNumber": 43
+        },
+        {
+          "caller": "load_actor",
+          "callee": "actor.eval",
+          "lineNumber": 44
+        },
+        {
+          "caller": "run_denoising_chain",
+          "callee": "torch.randn",
+          "lineNumber": 50
+        },
+        {
+          "caller": "run_denoising_chain",
+          "callee": "scheduler.set_timesteps",
+          "lineNumber": 51
+        },
+        {
+          "caller": "run_denoising_chain",
+          "callee": "torch.no_grad",
+          "lineNumber": 53
+        },
+        {
+          "caller": "run_denoising_chain",
+          "callee": "torch.tensor",
+          "lineNumber": 55
+        },
+        {
+          "caller": "run_denoising_chain",
+          "callee": "actor",
+          "lineNumber": 56
+        },
+        {
+          "caller": "run_denoising_chain",
+          "callee": "scheduler.step",
+          "lineNumber": 57
+        },
+        {
+          "caller": "run_denoising_chain",
+          "callee": "x.squeeze(0).cpu().numpy",
+          "lineNumber": 59
+        },
+        {
+          "caller": "run_denoising_chain",
+          "callee": "x.squeeze(0).cpu",
+          "lineNumber": 59
+        },
+        {
+          "caller": "run_denoising_chain",
+          "callee": "x.squeeze",
+          "lineNumber": 59
+        },
+        {
+          "caller": "evaluate_actor",
+          "callee": "range",
+          "lineNumber": 67
+        },
+        {
+          "caller": "evaluate_actor",
+          "callee": "env.reset",
+          "lineNumber": 68
+        },
+        {
+          "caller": "evaluate_actor",
+          "callee": "torch.tensor(obs, dtype=torch.float32, device=DEVICE).unsqueeze",
+          "lineNumber": 73
+        },
+        {
+          "caller": "evaluate_actor",
+          "callee": "torch.tensor",
+          "lineNumber": 73
+        },
+        {
+          "caller": "evaluate_actor",
+          "callee": "run_denoising_chain",
+          "lineNumber": 74
+        },
+        {
+          "caller": "evaluate_actor",
+          "callee": "range",
+          "lineNumber": 76
+        },
+        {
+          "caller": "evaluate_actor",
+          "callee": "env.step",
+          "lineNumber": 77
+        },
+        {
+          "caller": "evaluate_actor",
+          "callee": "frames.append",
+          "lineNumber": 79
+        },
+        {
+          "caller": "evaluate_actor",
+          "callee": "env.render",
+          "lineNumber": 79
+        },
+        {
+          "caller": "evaluate_actor",
+          "callee": "info.get",
+          "lineNumber": 80
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "DDPMScheduler",
+          "lineNumber": 96
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "os.path.exists",
+          "lineNumber": 106
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "print",
+          "lineNumber": 107
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "print",
+          "lineNumber": 109
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "load_actor",
+          "lineNumber": 110
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "build_eval_env",
+          "lineNumber": 111
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "evaluate_actor",
+          "lineNumber": 112
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "env.close",
+          "lineNumber": 113
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "print",
+          "lineNumber": 115
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "len",
+          "lineNumber": 117
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "print",
+          "lineNumber": 121
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "print",
+          "lineNumber": 122
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "print",
+          "lineNumber": 123
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "print",
+          "lineNumber": 124
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "print",
+          "lineNumber": 125
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "print",
+          "lineNumber": 126
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "print",
+          "lineNumber": 127
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "plt.subplots",
+          "lineNumber": 131
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "list",
+          "lineNumber": 132
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "results.keys",
+          "lineNumber": 132
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "ax.bar",
+          "lineNumber": 134
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "ax.set_ylabel",
+          "lineNumber": 135
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "ax.set_title",
+          "lineNumber": 136
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "ax.set_ylim",
+          "lineNumber": 137
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "zip",
+          "lineNumber": 138
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "ax.text",
+          "lineNumber": 139
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "bar.get_x",
+          "lineNumber": 139
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "bar.get_width",
+          "lineNumber": 139
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "plt.tight_layout",
+          "lineNumber": 140
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "plt.savefig",
+          "lineNumber": 141
+        },
+        {
+          "caller": "compare_bc_vs_dppo",
+          "callee": "print",
+          "lineNumber": 142
+        },
+        {
+          "caller": "render_video",
+          "callee": "os.path.exists",
+          "lineNumber": 151
+        },
+        {
+          "caller": "render_video",
+          "callee": "os.path.exists",
+          "lineNumber": 152
+        },
+        {
+          "caller": "render_video",
+          "callee": "print",
+          "lineNumber": 153
+        },
+        {
+          "caller": "render_video",
+          "callee": "print",
+          "lineNumber": 156
+        },
+        {
+          "caller": "render_video",
+          "callee": "DDPMScheduler",
+          "lineNumber": 157
+        },
+        {
+          "caller": "render_video",
+          "callee": "load_actor",
+          "lineNumber": 163
+        },
+        {
+          "caller": "render_video",
+          "callee": "build_eval_env",
+          "lineNumber": 164
+        },
+        {
+          "caller": "render_video",
+          "callee": "evaluate_actor",
+          "lineNumber": 165
+        },
+        {
+          "caller": "render_video",
+          "callee": "env.close",
+          "lineNumber": 166
+        },
+        {
+          "caller": "render_video",
+          "callee": "imageio.mimsave",
+          "lineNumber": 169
+        },
+        {
+          "caller": "render_video",
+          "callee": "print",
+          "lineNumber": 170
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 6,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "wrappers.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 104,
+      "nonEmptyLines": 87,
+      "functions": [
+        {
+          "name": "make_dppo_env",
+          "startLine": 92,
+          "endLine": 100,
+          "params": [
+            "env_id",
+            "Ta",
+            "reward_scale",
+            "obs_mean",
+            "obs_std"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "ActionChunkingWrapper",
+          "startLine": 3,
+          "endLine": 43,
+          "methods": [
+            "__init__",
+            "step"
+          ],
+          "properties": []
+        },
+        {
+          "name": "DiffusionStateNormalizer",
+          "startLine": 46,
+          "endLine": 77,
+          "methods": [
+            "__init__",
+            "observation"
+          ],
+          "properties": []
+        },
+        {
+          "name": "RewardScaler",
+          "startLine": 79,
+          "endLine": 90,
+          "methods": [
+            "__init__",
+            "reward"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ActionChunkingWrapper",
+          "line": 3,
+          "isDefault": false
+        },
+        {
+          "name": "DiffusionStateNormalizer",
+          "line": 46,
+          "isDefault": false
+        },
+        {
+          "name": "RewardScaler",
+          "line": 79,
+          "isDefault": false
+        },
+        {
+          "name": "make_dppo_env",
+          "line": 92,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 9
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 9
+        },
+        {
+          "caller": "__init__",
+          "callee": "isinstance",
+          "lineNumber": 13
+        },
+        {
+          "caller": "__init__",
+          "callee": "np.tile",
+          "lineNumber": 16
+        },
+        {
+          "caller": "__init__",
+          "callee": "np.tile",
+          "lineNumber": 17
+        },
+        {
+          "caller": "__init__",
+          "callee": "gym.spaces.Box",
+          "lineNumber": 20
+        },
+        {
+          "caller": "step",
+          "callee": "range",
+          "lineNumber": 31
+        },
+        {
+          "caller": "step",
+          "callee": "self.env.step",
+          "lineNumber": 32
+        },
+        {
+          "caller": "step",
+          "callee": "info.get",
+          "lineNumber": 35
+        },
+        {
+          "caller": "step",
+          "callee": "info.update",
+          "lineNumber": 36
+        },
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 54
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 54
+        },
+        {
+          "caller": "__init__",
+          "callee": "isinstance",
+          "lineNumber": 55
+        },
+        {
+          "caller": "__init__",
+          "callee": "np.array",
+          "lineNumber": 60
+        },
+        {
+          "caller": "__init__",
+          "callee": "np.array",
+          "lineNumber": 61
+        },
+        {
+          "caller": "__init__",
+          "callee": "np.zeros",
+          "lineNumber": 64
+        },
+        {
+          "caller": "__init__",
+          "callee": "np.ones",
+          "lineNumber": 65
+        },
+        {
+          "caller": "observation",
+          "callee": "np.tanh((observation - self.mean) / (self.std + self.eps)).astype",
+          "lineNumber": 70
+        },
+        {
+          "caller": "observation",
+          "callee": "np.tanh",
+          "lineNumber": 70
+        },
+        {
+          "caller": "observation",
+          "callee": "np.sqrt",
+          "lineNumber": 76
+        },
+        {
+          "caller": "observation",
+          "callee": "np.maximum",
+          "lineNumber": 76
+        },
+        {
+          "caller": "observation",
+          "callee": "np.tanh",
+          "lineNumber": 77
+        },
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 85
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 85
+        },
+        {
+          "caller": "make_dppo_env",
+          "callee": "gym.register_envs",
+          "lineNumber": 94
+        },
+        {
+          "caller": "make_dppo_env",
+          "callee": "gym.make",
+          "lineNumber": 95
+        },
+        {
+          "caller": "make_dppo_env",
+          "callee": "DiffusionStateNormalizer",
+          "lineNumber": 96
+        },
+        {
+          "caller": "make_dppo_env",
+          "callee": "RewardScaler",
+          "lineNumber": 97
+        },
+        {
+          "caller": "make_dppo_env",
+          "callee": "ActionChunkingWrapper",
+          "lineNumber": 98
+        },
+        {
+          "caller": "make_dppo_env",
+          "callee": "gym.wrappers.RescaleAction",
+          "lineNumber": 99
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 4,
+        "functionCount": 1,
+        "classCount": 3
+      }
+    }
+  ]
+}

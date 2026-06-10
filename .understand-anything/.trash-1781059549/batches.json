@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "louvain",
+  "totalFiles": 13,
+  "totalBatches": 2,
+  "exportsByPath": {
+    ".DS_Store": [],
+    ".understand-anything/.understandignore": [],
+    "checkpoints/.DS_Store": [],
+    "checkpoints/actor_bc.pt": [],
+    "checkpoints/actor_best.pt": [],
+    "download_expert_data.py": [
+      "download_and_convert"
+    ],
+    "dppo_math.py": [
+      "DashcamBuffer",
+      "calculate_gaussian_log_prob",
+      "compute_ppo_objective",
+      "get_ddpm_log_variance"
+    ],
+    "main.ipynb": [],
+    "network.py": [
+      "SinusoidalPosEmb",
+      "DiffusionMLPActor",
+      "ValueCritic"
+    ],
+    "train.py": [
+      "train_behavior_cloning",
+      "evaluate_policy",
+      "train_dppo"
+    ],
+    "visualize.py": [
+      "build_eval_env",
+      "load_actor",
+      "run_denoising_chain",
+      "evaluate_actor",
+      "compare_bc_vs_dppo",
+      "render_video"
+    ],
+    "wrappers.py": [
+      "ActionChunkingWrapper",
+      "DiffusionStateNormalizer",
+      "RewardScaler",
+      "make_dppo_env"
+    ]
+  },
+  "batches": [
+    {
+      "batchIndex": 1,
+      "files": [
+        {
+          "path": "network.py",
+          "language": "python",
+          "sizeLines": 143,
+          "fileCategory": "code"
+        },
+        {
+          "path": "visualize.py",
+          "language": "python",
+          "sizeLines": 175,
+          "fileCategory": "code"
+        },
+        {
+          "path": "wrappers.py",
+          "language": "python",
+          "sizeLines": 104,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "network.py": [],
+        "visualize.py": [
+          "network.py",
+          "wrappers.py"
+        ],
+        "wrappers.py": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 2,
+      "files": [
+        {
+          "path": ".DS_Store",
+          "language": "unknown",
+          "sizeLines": 2,
+          "fileCategory": "code"
+        },
+        {
+          "path": ".understand-anything/.understandignore",
+          "language": "unknown",
+          "sizeLines": 17,
+          "fileCategory": "code"
+        },
+        {
+          "path": "checkpoints/.DS_Store",
+          "language": "unknown",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "checkpoints/actor_bc.pt",
+          "language": "pt",
+          "sizeLines": 6705,
+          "fileCategory": "code"
+        },
+        {
+          "path": "checkpoints/actor_best.pt",
+          "language": "pt",
+          "sizeLines": 6719,
+          "fileCategory": "code"
+        },
+        {
+          "path": "download_expert_data.py",
+          "language": "python",
+          "sizeLines": 98,
+          "fileCategory": "code"
+        },
+        {
+          "path": "dppo_math.py",
+          "language": "python",
+          "sizeLines": 139,
+          "fileCategory": "code"
+        },
+        {
+          "path": "main.ipynb",
+          "language": "ipynb",
+          "sizeLines": 47,
+          "fileCategory": "code"
+        },
+        {
+          "path": "README.md",
+          "language": "markdown",
+          "sizeLines": 88,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "train.py",
+          "language": "python",
+          "sizeLines": 242,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        ".DS_Store": [],
+        ".understand-anything/.understandignore": [],
+        "checkpoints/.DS_Store": [],
+        "checkpoints/actor_bc.pt": [],
+        "checkpoints/actor_best.pt": [],
+        "download_expert_data.py": [],
+        "dppo_math.py": [],
+        "main.ipynb": [],
+        "README.md": [],
+        "train.py": [
+          "dppo_math.py"
+        ]
+      },
+      "neighborMap": {}
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "status": "pass",
+  "graph": "assembled-graph.json",
+  "counts": {
+    "nodes": 33,
+    "edges": 63,
+    "complexity": {
+      "simple": 20,
+      "moderate": 12,
+      "complex": 1
+    }
+  },
+  "step1_fixed_validation": {
+    "description": "3 complexity 'medium' -> 'moderate' normalizations from merge script",
+    "verdict": "accepted — minor vocabulary normalization, no content change"
+  },
+  "step2_complexity_corrections": {
+    "description": "30 nodes had complexity=None defaulted to 'moderate'; reviewed against source line counts",
+    "guidelines": "simple: <50 non-empty lines; moderate: 50-200 lines; complex: >200 lines with many definitions",
+    "changes_applied": 21,
+    "kept_as_moderate": 9,
+    "corrections": [
+      { "id": "class:network.py:SinusoidalPosEmb",              "from": "moderate", "to": "simple",  "reason": "54-line span but heavily commented; 2 methods, ~20 meaningful lines" },
+      { "id": "class:network.py:ValueCritic",                    "from": "moderate", "to": "simple",  "reason": "19 lines (126-144), minimal structure" },
+      { "id": "function:visualize.py:build_eval_env",            "from": "moderate", "to": "simple",  "reason": "13 lines (26-38)" },
+      { "id": "function:visualize.py:run_denoising_chain",       "from": "moderate", "to": "simple",  "reason": "12 lines (48-59)" },
+      { "id": "function:visualize.py:evaluate_actor",            "from": "moderate", "to": "simple",  "reason": "28 lines (62-89)" },
+      { "id": "function:visualize.py:render_video",              "from": "moderate", "to": "simple",  "reason": "24 lines (147-170)" },
+      { "id": "function:visualize.py:load_actor",                "from": "moderate", "to": "simple",  "reason": "5 lines (41-45)" },
+      { "id": "class:wrappers.py:ActionChunkingWrapper",         "from": "moderate", "to": "simple",  "reason": "41 lines (3-43), 2 methods" },
+      { "id": "class:wrappers.py:DiffusionStateNormalizer",      "from": "moderate", "to": "simple",  "reason": "32 lines (46-77), 2 methods" },
+      { "id": "class:wrappers.py:RewardScaler",                  "from": "moderate", "to": "simple",  "reason": "12 lines (79-90), trivial wrapper" },
+      { "id": "file:.DS_Store",                                  "from": "moderate", "to": "simple",  "reason": "binary metadata file, 2 lines" },
+      { "id": "file:.understand-anything/.understandignore",     "from": "moderate", "to": "simple",  "reason": "17-line config, all comments" },
+      { "id": "file:checkpoints/.DS_Store",                      "from": "moderate", "to": "simple",  "reason": "binary metadata file, 0 lines" },
+      { "id": "file:checkpoints/actor_bc.pt",                    "from": "moderate", "to": "simple",  "reason": "binary checkpoint, no code structure" },
+      { "id": "file:checkpoints/actor_best.pt",                  "from": "moderate", "to": "simple",  "reason": "binary checkpoint, no code structure" },
+      { "id": "file:main.ipynb",                                 "from": "moderate", "to": "simple",  "reason": "47 lines, under 50 threshold" },
+      { "id": "function:dppo_math.py::calculate_gaussian_log_prob", "from": "moderate", "to": "simple",  "reason": "28 lines (69-96), single formula" },
+      { "id": "function:dppo_math.py::compute_ppo_objective",    "from": "moderate", "to": "simple",  "reason": "30 lines (98-127), standard PPO clip" },
+      { "id": "function:dppo_math.py::get_ddpm_log_variance",    "from": "moderate", "to": "simple",  "reason": "11 lines (129-139), trivial lookup" },
+      { "id": "function:train.py::evaluate_policy",              "from": "moderate", "to": "simple",  "reason": "37 lines (67-103), straightforward loop" },
+      { "id": "file:train.py",                                   "from": "moderate", "to": "complex", "reason": "242 lines, 3 major functions, exceeds 200-line threshold" }
+    ]
+  },
+  "step3_cross_batch_edges": {
+    "description": "Verified 3 import edges from the import map against assembled graph edges",
+    "imports_checked": [
+      { "source": "file:train.py",     "target": "file:dppo_math.py",  "status": "present" },
+      { "source": "file:visualize.py", "target": "file:network.py",    "status": "present" },
+      { "source": "file:visualize.py", "target": "file:wrappers.py",   "status": "present" }
+    ],
+    "missing_edges_added": 0,
+    "verdict": "all cross-batch import edges already present"
+  }
+}

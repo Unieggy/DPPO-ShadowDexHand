@@ -1,0 +1,13 @@
+{
+  "projectRoot": "/Users/cheng/Desktop/Projects/vscodebased/dppodex",
+  "batchFiles": [
+    {"path": "network.py", "language": "python", "sizeLines": 143, "fileCategory": "code"},
+    {"path": "visualize.py", "language": "python", "sizeLines": 175, "fileCategory": "code"},
+    {"path": "wrappers.py", "language": "python", "sizeLines": 104, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "network.py": [],
+    "visualize.py": ["network.py", "wrappers.py"],
+    "wrappers.py": []
+  }
+}

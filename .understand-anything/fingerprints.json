@@ -1,0 +1,536 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "3659215b684fcb891e74cfde1083899f87953afc",
+  "generatedAt": "2026-06-10T02:06:30.037Z",
+  "files": {
+    ".DS_Store": {
+      "filePath": ".DS_Store",
+      "contentHash": "fc3b4928b0ddeeeb58834c093a9b420a7877a34ffc0fdbbb1e478143abe2f197",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": false
+    },
+    ".understand-anything/.understandignore": {
+      "filePath": ".understand-anything/.understandignore",
+      "contentHash": "9e449c4cffd9de550d4a0bca7aa73d391a59720a8810274c359aeb0a52400025",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "checkpoints/.DS_Store": {
+      "filePath": "checkpoints/.DS_Store",
+      "contentHash": "126e5da5a9d4346148fec56f5f5b2111bb4640646a89f87acabf8804fcfba9e1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    "checkpoints/actor_bc.pt": {
+      "filePath": "checkpoints/actor_bc.pt",
+      "contentHash": "ecd4ce67d265e119c8ead7c6136cb88db089e4db1c01fe08463c1b62be7314ae",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6706,
+      "hasStructuralAnalysis": false
+    },
+    "checkpoints/actor_best.pt": {
+      "filePath": "checkpoints/actor_best.pt",
+      "contentHash": "390d5000e6569f3fad1b382e4d7f36ad7a59b7847b44ac191d69f19cf65f3a9e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6720,
+      "hasStructuralAnalysis": false
+    },
+    "download_expert_data.py": {
+      "filePath": "download_expert_data.py",
+      "contentHash": "b5bf89189e9ee044a082860109086d0d97e47645c2a4a8cebda2155e497e4cbd",
+      "functions": [
+        {
+          "name": "download_and_convert",
+          "params": [],
+          "exported": true,
+          "lineCount": 79
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "torch",
+          "specifiers": [
+            "torch"
+          ]
+        },
+        {
+          "source": "minari",
+          "specifiers": [
+            "minari"
+          ]
+        }
+      ],
+      "exports": [
+        "download_and_convert"
+      ],
+      "totalLines": 99,
+      "hasStructuralAnalysis": true
+    },
+    "dppo_math.py": {
+      "filePath": "dppo_math.py",
+      "contentHash": "9f7257d8febc710e2caf6f078338b3ca5f3acc67098609e9535fee4dd65b4f9e",
+      "functions": [
+        {
+          "name": "calculate_gaussian_log_prob",
+          "params": [
+            "predicted_noise",
+            "target_noise",
+            "log_variance"
+          ],
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "compute_ppo_objective",
+          "params": [
+            "new_log_probs",
+            "old_log_probs",
+            "advantages",
+            "epsilon_clip"
+          ],
+          "exported": true,
+          "lineCount": 30
+        },
+        {
+          "name": "get_ddpm_log_variance",
+          "params": [
+            "scheduler",
+            "k_steps",
+            "device"
+          ],
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [
+        {
+          "name": "DashcamBuffer",
+          "methods": [
+            "__init__",
+            "add_trajectory",
+            "get_all",
+            "clear"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 64
+        }
+      ],
+      "imports": [
+        {
+          "source": "torch",
+          "specifiers": [
+            "torch"
+          ]
+        },
+        {
+          "source": "torch.nn",
+          "specifiers": [
+            "nn"
+          ]
+        }
+      ],
+      "exports": [
+        "DashcamBuffer",
+        "calculate_gaussian_log_prob",
+        "compute_ppo_objective",
+        "get_ddpm_log_variance"
+      ],
+      "totalLines": 140,
+      "hasStructuralAnalysis": true
+    },
+    "main.ipynb": {
+      "filePath": "main.ipynb",
+      "contentHash": "2b4d0a700e4ea69261860c30659979f9cfdb91417899c5dbcd1ac195e19ceed9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 48,
+      "hasStructuralAnalysis": false
+    },
+    "network.py": {
+      "filePath": "network.py",
+      "contentHash": "2e04ac17872a7946c9ac18ab49b892347f93e20fc1b650c60cd48d50b78e0d7a",
+      "functions": [],
+      "classes": [
+        {
+          "name": "SinusoidalPosEmb",
+          "methods": [
+            "__init__",
+            "forward"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 54
+        },
+        {
+          "name": "DiffusionMLPActor",
+          "methods": [
+            "__init__",
+            "forward"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 65
+        },
+        {
+          "name": "ValueCritic",
+          "methods": [
+            "__init__",
+            "forward"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 19
+        }
+      ],
+      "imports": [
+        {
+          "source": "torch",
+          "specifiers": [
+            "torch"
+          ]
+        },
+        {
+          "source": "torch.nn",
+          "specifiers": [
+            "nn"
+          ]
+        },
+        {
+          "source": "math",
+          "specifiers": [
+            "math"
+          ]
+        }
+      ],
+      "exports": [
+        "SinusoidalPosEmb",
+        "DiffusionMLPActor",
+        "ValueCritic"
+      ],
+      "totalLines": 144,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "ad8fb535045ca2ac57b565104a563c2be1315ea8201f197ebbc476c5a5d14d55",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 89,
+      "hasStructuralAnalysis": true
+    },
+    "train.py": {
+      "filePath": "train.py",
+      "contentHash": "321423c6a90492df44986cc0e43686272d9554edea2e74039873fd73c951e5ba",
+      "functions": [
+        {
+          "name": "train_behavior_cloning",
+          "params": [
+            "actor",
+            "diffusion_scheduler",
+            "expert_states",
+            "expert_action_chunks",
+            "K",
+            "epochs",
+            "batch_size",
+            "device"
+          ],
+          "exported": true,
+          "lineCount": 58
+        },
+        {
+          "name": "evaluate_policy",
+          "params": [
+            "env",
+            "actor",
+            "diffusion_scheduler",
+            "K",
+            "device",
+            "num_episodes"
+          ],
+          "exported": true,
+          "lineCount": 37
+        },
+        {
+          "name": "train_dppo",
+          "params": [
+            "env",
+            "old_actor",
+            "active_actor",
+            "critic",
+            "buffer",
+            "diffusion_scheduler",
+            "K",
+            "K_prime",
+            "device",
+            "save_dir",
+            "save_every",
+            "eval_every",
+            "num_eval_episodes"
+          ],
+          "exported": true,
+          "lineCount": 135
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "torch",
+          "specifiers": [
+            "torch"
+          ]
+        },
+        {
+          "source": "torch.nn",
+          "specifiers": [
+            "nn"
+          ]
+        },
+        {
+          "source": "torch.optim",
+          "specifiers": [
+            "optim"
+          ]
+        },
+        {
+          "source": "torch.utils.data",
+          "specifiers": [
+            "DataLoader",
+            "TensorDataset"
+          ]
+        },
+        {
+          "source": "dppo_math",
+          "specifiers": [
+            "calculate_gaussian_log_prob",
+            "compute_ppo_objective",
+            "get_ddpm_log_variance"
+          ]
+        }
+      ],
+      "exports": [
+        "train_behavior_cloning",
+        "evaluate_policy",
+        "train_dppo"
+      ],
+      "totalLines": 243,
+      "hasStructuralAnalysis": true
+    },
+    "visualize.py": {
+      "filePath": "visualize.py",
+      "contentHash": "58f697e67d339cf3420d9664a760a92523a21646c92643c6207de0eeee3559ad",
+      "functions": [
+        {
+          "name": "build_eval_env",
+          "params": [],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "load_actor",
+          "params": [
+            "checkpoint_path"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "run_denoising_chain",
+          "params": [
+            "actor",
+            "scheduler",
+            "obs_tensor"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "evaluate_actor",
+          "params": [
+            "actor",
+            "scheduler",
+            "env",
+            "num_episodes",
+            "record_frames"
+          ],
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "compare_bc_vs_dppo",
+          "params": [],
+          "exported": true,
+          "lineCount": 53
+        },
+        {
+          "name": "render_video",
+          "params": [],
+          "exported": true,
+          "lineCount": 24
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "torch",
+          "specifiers": [
+            "torch"
+          ]
+        },
+        {
+          "source": "imageio",
+          "specifiers": [
+            "imageio"
+          ]
+        },
+        {
+          "source": "gymnasium",
+          "specifiers": [
+            "gym"
+          ]
+        },
+        {
+          "source": "gymnasium_robotics",
+          "specifiers": [
+            "gymnasium_robotics"
+          ]
+        },
+        {
+          "source": "diffusers",
+          "specifiers": [
+            "DDPMScheduler"
+          ]
+        },
+        {
+          "source": "network",
+          "specifiers": [
+            "DiffusionMLPActor"
+          ]
+        },
+        {
+          "source": "wrappers",
+          "specifiers": [
+            "DiffusionStateNormalizer"
+          ]
+        }
+      ],
+      "exports": [
+        "build_eval_env",
+        "load_actor",
+        "run_denoising_chain",
+        "evaluate_actor",
+        "compare_bc_vs_dppo",
+        "render_video"
+      ],
+      "totalLines": 176,
+      "hasStructuralAnalysis": true
+    },
+    "wrappers.py": {
+      "filePath": "wrappers.py",
+      "contentHash": "07778f1099e51653a38cd8c9910d44a3d361774646fa0890ac9336be8b5e0aa9",
+      "functions": [
+        {
+          "name": "make_dppo_env",
+          "params": [
+            "env_id",
+            "Ta",
+            "reward_scale",
+            "obs_mean",
+            "obs_std"
+          ],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [
+        {
+          "name": "ActionChunkingWrapper",
+          "methods": [
+            "__init__",
+            "step"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 41
+        },
+        {
+          "name": "DiffusionStateNormalizer",
+          "methods": [
+            "__init__",
+            "observation"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 32
+        },
+        {
+          "name": "RewardScaler",
+          "methods": [
+            "__init__",
+            "reward"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "imports": [
+        {
+          "source": "gymnasium",
+          "specifiers": [
+            "gym"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        }
+      ],
+      "exports": [
+        "ActionChunkingWrapper",
+        "DiffusionStateNormalizer",
+        "RewardScaler",
+        "make_dppo_env"
+      ],
+      "totalLines": 105,
+      "hasStructuralAnalysis": true
+    }
+  }
+}
